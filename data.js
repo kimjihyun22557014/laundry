@@ -94,6 +94,96 @@ window.ARCHIVE = {
       "material": "",
       "note": "",
       "tags": []
+    },
+    {
+      "day": 11,
+      "image": "assets/day-11.jpg",
+      "brand": "",
+      "color": "",
+      "material": "",
+      "note": "",
+      "tags": []
+    },
+    {
+      "day": 12,
+      "image": "assets/day-12.jpg",
+      "brand": "",
+      "color": "",
+      "material": "",
+      "note": "",
+      "tags": []
+    },
+    {
+      "day": 13,
+      "image": "assets/day-13.jpg",
+      "brand": "",
+      "color": "",
+      "material": "",
+      "note": "",
+      "tags": []
+    },
+    {
+      "day": 14,
+      "image": "assets/day-14.jpg",
+      "brand": "",
+      "color": "",
+      "material": "",
+      "note": "",
+      "tags": []
+    },
+    {
+      "day": 15,
+      "image": "assets/day-15.jpg",
+      "brand": "",
+      "color": "",
+      "material": "",
+      "note": "",
+      "tags": []
+    },
+    {
+      "day": 16,
+      "image": "assets/day-16.jpg",
+      "brand": "",
+      "color": "",
+      "material": "",
+      "note": "",
+      "tags": []
+    },
+    {
+      "day": 17,
+      "image": "assets/day-17.jpg",
+      "brand": "",
+      "color": "",
+      "material": "",
+      "note": "",
+      "tags": []
+    },
+    {
+      "day": 18,
+      "image": "assets/day-18.jpg",
+      "brand": "",
+      "color": "",
+      "material": "",
+      "note": "",
+      "tags": []
+    },
+    {
+      "day": 19,
+      "image": "assets/day-19.jpg",
+      "brand": "",
+      "color": "",
+      "material": "",
+      "note": "",
+      "tags": []
+    },
+    {
+      "day": 20,
+      "image": "assets/day-20.jpg",
+      "brand": "",
+      "color": "",
+      "material": "",
+      "note": "",
+      "tags": []
     }
   ]
 };
