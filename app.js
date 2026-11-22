@@ -1,82 +1,60 @@
 'use strict';
-const $ = selector => document.querySelector(selector);
-const archive = window.ARCHIVE;
-const items = archive.items;
-const symbols = [
- {id:'color',label:'컬러 강조',path:'<circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16M6.3 6.3l11.4 11.4"/>'},
- {id:'scent',label:'향기 보유',path:'<path d="M8 9h8l2 12H6L8 9zM10 5h4v4h-4zM12 2v2M17 5l3-2M18 8h4"/>'},
- {id:'easy',label:'생각 금지',path:'<path d="M7 16c-5-7 0-14 6-13s9 8 4 12l-2 2v4H9v-4zM3 3l18 18"/>'},
- {id:'worn',label:'낡음 주의',path:'<path d="M12 3L2 21h20L12 3zM12 9v5M12 17v1"/>'},
- {id:'warm',label:'보온 강화',path:'<path d="M7 21c-5-6 4-6 0-12M12 21c-5-6 4-6 0-12M17 21c-5-6 4-6 0-12M12 2v5M9.5 4.5h5"/>'}
-];
-let selected = 0, filter = '', mode = 'stack';
-const pad = n => String(n).padStart(2,'0');
-const filtered = () => items.filter(item => !filter || (item.tags || []).includes(filter));
-const current = () => filtered()[selected];
-$('h1').replaceChildren(document.createTextNode(archive.title.split(',')[0]+','),document.createElement('br'),document.createTextNode(archive.title.split(',').slice(1).join(',').trim()),Object.assign(document.createElement('span'),{textContent:'.'}));
-$('#subtitle').textContent=archive.subtitle;
-document.title=archive.title+' — Wardrobe Archive';
-function createIndex(){
- $('#index').replaceChildren();
- items.forEach(item=>{
-  const b=document.createElement('button'); b.textContent='DAY '+pad(item.day); b.setAttribute('aria-label',`${item.day}일차 표본 보기`);
-  b.addEventListener('click',()=>{filter='';selected=items.indexOf(item);mode='stack';render();});
-  b.setAttribute('aria-current',String(current()===item)); $('#index').append(b);
+const stage=document.querySelector('#stage'),deck=document.querySelector('#deck');
+const items=window.ARCHIVE.items,cards=[];
+let active=0,hovered=-1,near=false,lastAngle=null,travel=0,touching=false;
+const pad=n=>String(n).padStart(2,'0');
+function node(tag,cls,text){const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=text;return el;}
+items.forEach((item,index)=>{
+ const card=node('article','specimen');card.tabIndex=0;card.setAttribute('role','button');card.setAttribute('aria-label',`${item.day}일차 소재 표본 펼치기`);
+ card.append(node('div','hole'));
+ const top=node('div','card-top');top.append(node('span','','WARDROBE ARCHIVE'),node('span','',pad(item.day)+'.'));card.append(top);
+ const title=node('div','card-title');title.append(node('p','','MATERIAL / DAILY RECORD'),node('h2','',`DAY ${pad(item.day)}`));card.append(title);
+ const cross=node('div','crossline');cross.setAttribute('aria-hidden','true');cross.append(node('span','','+'),node('span','','+'));card.append(cross);
+ const dl=node('dl');[['BRAND',item.brand],['COLOR',item.color],['MATERIAL',item.material]].forEach(([k,v])=>{const row=node('div');row.append(node('dt','',k),node('dd','',v||'—'));dl.append(row);});card.append(dl);
+ const photo=node('figure','swatch'),img=node('img');img.src=item.image;img.alt=`${item.day}일차 옷 또는 패션 아이템의 표면`;img.draggable=false;photo.append(img,node('i','staple'),node('i','staple'));card.append(photo,node('p','card-note',item.note||''));
+ const foot=node('div','card-foot');foot.append(node('span','',`DAILY SAMPLE / ${pad(item.day)}`),node('span','','COLLECTED, NOT FORGOTTEN.'));card.append(foot);
+ card.addEventListener('pointerenter',e=>{if(e.pointerType==='touch')return;hovered=index;near=true;layout();});
+ card.addEventListener('pointerleave',()=>{if(hovered===index){hovered=-1;layout();}});
+ card.addEventListener('focus',()=>{near=true;active=index;hovered=index;layout();});
+ card.addEventListener('click',()=>{active=index;hovered=index;layout();});
+ deck.append(card);cards.push(card);
+});
+function distance(index){let d=(index-active+items.length)%items.length;if(d>items.length/2)d-=items.length;return d;}
+function layout(){
+ cards.forEach((card,index)=>{
+  const d=distance(index),picked=near&&hovered===index;
+  const angle=d*(near?11.5:1.35)+(near?0:-4);
+  const shift=picked?27:near?Math.abs(d)*2:Math.abs(d)*1.1;
+  card.style.transform=`rotate(${angle}deg) translateY(${shift}px) rotateX(${picked?-3:0}deg)`;
+  card.style.zIndex=String(picked?100:60-Math.abs(d)*2+(d<0?0:1));
+  card.classList.toggle('extracted',picked);card.setAttribute('aria-pressed',String(index===active));
  });
 }
-function renderCard(){
- const item=current();
- $('#stack').hidden=mode!=='stack'||!item; $('#paging').hidden=mode!=='stack'||!item;
- if(!item)return;
- $('#card-id').textContent=pad(item.day)+'. / '+pad(items.length);
- $('#card-title').textContent=`DAY ${pad(item.day)}`;
- $('#card-image').src=item.image; $('#card-image').alt=`${item.day}일차 옷 또는 패션 아이템의 소재 확대 사진`;
- $('#card-day').textContent=`DAILY SAMPLE / ${pad(item.day)}`;
- $('#metadata').replaceChildren();
- [['BRAND',item.brand],['COLOR',item.color],['MATERIAL',item.material]].forEach(([key,value])=>{
-  const row=document.createElement('div'),dt=document.createElement('dt'),dd=document.createElement('dd');
-  dt.textContent=key;dd.textContent=value||'—';row.append(dt,dd);$('#metadata').append(row);
- });
- $('#card-note').textContent=item.note||'';
- $('#card-tags').replaceChildren();
- symbols.filter(s=>(item.tags||[]).includes(s.id)).forEach(s=>{const tag=document.createElement('span');tag.textContent=s.label;$('#card-tags').append(tag);});
- $('#page-number').textContent=`${pad(selected+1)} / ${pad(filtered().length)}`;
- $('#prev').disabled=selected===0;$('#next').disabled=selected>=filtered().length-1;
- document.querySelectorAll('.back').forEach((back,n)=>{
-  const behind=filtered()[(selected+n+1)%filtered().length];back.style.setProperty('--back-image',`url("${behind.image}")`);
- });
+function pivot(){const r=deck.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+22,width:r.width,height:r.height};}
+function pointer(x,y){
+ const p=pivot(),dx=x-p.x,dy=y-p.y,r=Math.hypot(dx,dy);
+ const within=r<Math.max(p.height+50,p.width*1.4)&&r>18;
+ if(near!==within){near=within;if(!near)hovered=-1;layout();}
+ if(!within||r<75){lastAngle=null;travel=0;return;}
+ const angle=Math.atan2(dy,dx);
+ if(lastAngle!==null){
+  let delta=angle-lastAngle;if(delta>Math.PI)delta-=Math.PI*2;if(delta<-Math.PI)delta+=Math.PI*2;
+  if(Math.abs(delta)<.8)travel+=delta;
+  const step=.31;
+  if(Math.abs(travel)>=step){const turns=Math.trunc(travel/step);active=(active+turns%items.length+items.length)%items.length;travel-=turns*step;hovered=-1;stage.classList.add('turning');layout();}
+ }
+ lastAngle=angle;
 }
-function renderGrid(){
- const grid=$('#grid');grid.hidden=mode!=='grid';grid.replaceChildren();
- if(mode!=='grid')return;
- const list=filtered();
- if(!list.length){const p=document.createElement('p');p.className='empty';p.textContent='이 기호로 분류된 표본이 아직 없습니다.';grid.append(p);return;}
- list.forEach((item,i)=>{
-  const b=document.createElement('button');b.className='grid-card';
-  const img=document.createElement('img');img.src=item.image;img.alt=`${item.day}일차 소재 사진`;img.loading='lazy';
-  const label=document.createElement('span');label.textContent=`DAY ${pad(item.day)}`;
-  b.append(img,label);b.addEventListener('click',()=>{selected=i;mode='stack';render();$('#zoom-open').focus();});grid.append(b);
- });
-}
-function render(){
- $('#count').textContent=`${pad(filtered().length)} COLLECTED SAMPLES`;
- $('#stack-view').setAttribute('aria-pressed',String(mode==='stack'));
- $('#grid-view').setAttribute('aria-pressed',String(mode==='grid'));
- $('#reset-filter').hidden=!filter;
- document.querySelectorAll('#filters button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.filter===filter)));
- renderCard();renderGrid();createIndex();
- if(!filtered().length){mode='grid';$('#grid-view').setAttribute('aria-pressed','true');$('#stack-view').setAttribute('aria-pressed','false');renderGrid();}
-}
-function move(delta){const n=selected+delta;if(n<0||n>=filtered().length)return;selected=n;render();}
-$('#prev').addEventListener('click',()=>move(-1));$('#next').addEventListener('click',()=>move(1));
-$('#stack-view').addEventListener('click',()=>{mode='stack';render();});$('#grid-view').addEventListener('click',()=>{mode='grid';render();});
-symbols.forEach(s=>{const b=document.createElement('button');b.dataset.filter=s.id;b.setAttribute('aria-pressed','false');b.innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true">${s.path}</svg><span>${s.label}</span>`;b.addEventListener('click',()=>{filter=filter===s.id?'':s.id;selected=0;render();});$('#filters').append(b);});
-$('#reset-filter').addEventListener('click',()=>{filter='';selected=0;render();});
-$('#zoom-open').addEventListener('click',()=>{const item=current();$('#zoom-image').src=item.image;$('#zoom-image').alt=$('#card-image').alt;$('#zoom-caption').textContent=`DAY ${pad(item.day)} / ${item.brand||archive.owner}`;$('#zoom').showModal();});
-$('#about-open').addEventListener('click',()=>$('#about').showModal());
-document.querySelectorAll('dialog').forEach(dialog=>{dialog.querySelector('.dialog-close').addEventListener('click',()=>dialog.close());dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close();}});});
-document.addEventListener('keydown',e=>{if(document.querySelector('dialog[open]')||mode!=='stack'||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;if(e.key==='ArrowRight'){e.preventDefault();move(1);}if(e.key==='ArrowLeft'){e.preventDefault();move(-1);}});
-let startX=0,startY=0;
-$('#card').addEventListener('touchstart',e=>{startX=e.changedTouches[0].clientX;startY=e.changedTouches[0].clientY;},{passive:true});
-$('#card').addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-startX,dy=e.changedTouches[0].clientY-startY;if(Math.abs(dx)>70&&Math.abs(dx)>Math.abs(dy)*1.5)move(dx<0?1:-1);},{passive:true});
-render();
+stage.addEventListener('pointermove',e=>{if(e.pointerType==='touch'&&!touching)return;pointer(e.clientX,e.clientY);});
+stage.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'){touching=true;lastAngle=null;near=true;pointer(e.clientX,e.clientY);layout();}});
+stage.addEventListener('pointerup',()=>{touching=false;lastAngle=null;});
+function collapse(){near=false;hovered=-1;lastAngle=null;travel=0;stage.classList.remove('turning');layout();}
+stage.addEventListener('pointerleave',collapse);window.addEventListener('blur',collapse);
+window.addEventListener('keydown',e=>{
+ if(!['ArrowRight','ArrowLeft','Escape','Enter',' '].includes(e.key))return;e.preventDefault();
+ if(e.key==='Escape'){document.activeElement?.blur();collapse();return;}
+ if(e.key==='Enter'||e.key===' '){near=!near;hovered=near?active:-1;}
+ else{active=(active+(e.key==='ArrowRight'?1:-1)+items.length)%items.length;near=true;hovered=active;}
+ layout();
+});
+layout();
