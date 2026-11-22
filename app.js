@@ -1,7 +1,7 @@
 'use strict';
 const stage=document.querySelector('#stage'),deck=document.querySelector('#deck');
 const items=window.ARCHIVE.items,cards=[];
-let active=0,hovered=-1,near=false,lastAngle=null,travel=0,touching=false;
+let active=0;
 const pad=n=>String(n).padStart(2,'0');
 function node(tag,cls,text){const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=text;return el;}
 items.forEach((item,index)=>{
@@ -13,48 +13,120 @@ items.forEach((item,index)=>{
  const dl=node('dl');[['BRAND',item.brand],['COLOR',item.color],['MATERIAL',item.material]].forEach(([k,v])=>{const row=node('div');row.append(node('dt','',k),node('dd','',v||'—'));dl.append(row);});card.append(dl);
  const photo=node('figure','swatch'),img=node('img');img.src=item.image;img.alt=`${item.day}일차 옷 또는 패션 아이템의 표면`;img.draggable=false;photo.append(img,node('i','staple'),node('i','staple'));card.append(photo,node('p','card-note',item.note||''));
  const foot=node('div','card-foot');foot.append(node('span','',`DAILY SAMPLE / ${pad(item.day)}`),node('span','','COLLECTED, NOT FORGOTTEN.'));card.append(foot);
- card.addEventListener('pointerenter',e=>{if(e.pointerType==='touch')return;hovered=index;near=true;layout();});
- card.addEventListener('pointerleave',()=>{if(hovered===index){hovered=-1;layout();}});
- card.addEventListener('focus',()=>{near=true;active=index;hovered=index;layout();});
- card.addEventListener('click',()=>{active=index;hovered=index;layout();});
  deck.append(card);cards.push(card);
 });
-function distance(index){let d=(index-active+items.length)%items.length;if(d>items.length/2)d-=items.length;return d;}
-function layout(){
- cards.forEach((card,index)=>{
-  const d=distance(index),picked=near&&hovered===index;
-  const angle=d*(near?11.5:1.35)+(near?0:-4);
-  const shift=picked?27:near?Math.abs(d)*2:Math.abs(d)*1.1;
-  card.style.transform=`rotate(${angle}deg) translateY(${shift}px) rotateX(${picked?-3:0}deg)`;
-  card.style.zIndex=String(picked?100:60-Math.abs(d)*2+(d<0?0:1));
-  card.classList.toggle('extracted',picked);card.setAttribute('aria-pressed',String(index===active));
- });
-}
-function pivot(){const r=deck.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+22,width:r.width,height:r.height};}
-function pointer(x,y){
- const p=pivot(),dx=x-p.x,dy=y-p.y,r=Math.hypot(dx,dy);
- const within=r<Math.max(p.height+50,p.width*1.4)&&r>18;
- if(near!==within){near=within;if(!near)hovered=-1;layout();}
- if(!within||r<75){lastAngle=null;travel=0;return;}
- const angle=Math.atan2(dy,dx);
- if(lastAngle!==null){
-  let delta=angle-lastAngle;if(delta>Math.PI)delta-=Math.PI*2;if(delta<-Math.PI)delta+=Math.PI*2;
-  if(Math.abs(delta)<.8)travel+=delta;
-  const step=.31;
-  if(Math.abs(travel)>=step){const turns=Math.trunc(travel/step);active=(active+turns%items.length+items.length)%items.length;travel-=turns*step;hovered=-1;stage.classList.add('turning');layout();}
- }
- lastAngle=angle;
-}
-stage.addEventListener('pointermove',e=>{if(e.pointerType==='touch'&&!touching)return;pointer(e.clientX,e.clientY);});
-stage.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'){touching=true;lastAngle=null;near=true;pointer(e.clientX,e.clientY);layout();}});
-stage.addEventListener('pointerup',()=>{touching=false;lastAngle=null;});
-function collapse(){near=false;hovered=-1;lastAngle=null;travel=0;stage.classList.remove('turning');layout();}
-stage.addEventListener('pointerleave',collapse);window.addEventListener('blur',collapse);
-window.addEventListener('keydown',e=>{
- if(!['ArrowRight','ArrowLeft','Escape','Enter',' '].includes(e.key))return;e.preventDefault();
- if(e.key==='Escape'){document.activeElement?.blur();collapse();return;}
- if(e.key==='Enter'||e.key===' '){near=!near;hovered=near?active:-1;}
- else{active=(active+(e.key==='ArrowRight'?1:-1)+items.length)%items.length;near=true;hovered=active;}
- layout();
+// Browsing changes only through the fixed index, wheel or keyboard.
+const ring=document.querySelector('#ring');
+const ringBack=document.querySelector('#ring-back');
+const indexBar=node('nav','sample-index');
+indexBar.setAttribute('role','tablist');indexBar.setAttribute('aria-label','날짜순 아카이브');
+stage.append(indexBar);
+let hoverTimer=null,dragging=false,dragPointer=null,previousAngle=null,dragTravel=0;
+let play=0,dragDirection=1,renderFrame=0,geometry=null,wheelTotal=0,wheelLockUntil=0;
+const tabs=items.map((item,index)=>{
+ const tab=node('button','sample-tab',pad(item.day));tab.type='button';tab.id=`sample-tab-${index}`;
+ tab.setAttribute('role','tab');tab.setAttribute('aria-label',`${item.day}일차 보기`);
+ tab.setAttribute('aria-controls',`sample-${index}`);
+ tab.addEventListener('pointerenter',e=>{if(e.pointerType==='touch'||dragging)return;clearTimeout(hoverTimer);hoverTimer=setTimeout(()=>choose(index),140);});
+ tab.addEventListener('pointerleave',()=>clearTimeout(hoverTimer));
+ tab.addEventListener('click',()=>choose(index));
+ tab.addEventListener('focus',()=>{if(!dragging)choose(index);});
+ indexBar.append(tab);return tab;
 });
-layout();
+cards.forEach((card,index)=>{
+ card.id=`sample-${index}`;card.tabIndex=-1;card.setAttribute('role','tabpanel');
+ card.setAttribute('aria-labelledby',`sample-tab-${index}`);
+});
+ring.removeAttribute('aria-hidden');ring.setAttribute('role','button');ring.tabIndex=0;
+ring.setAttribute('aria-label','링을 누른 채 원을 그리면 종이가 펼쳐집니다');
+function measure(){
+ geometry={w:deck.offsetWidth,h:deck.offsetHeight,vw:stage.clientWidth,vh:stage.clientHeight};
+ render();
+}
+function choose(index){
+ clearTimeout(hoverTimer);
+ if(dragging)endDrag();
+ active=Math.max(0,Math.min(items.length-1,index));play=0;
+ render();
+}
+function render(){
+ if(!geometry)return;
+ const {w,h,vw,vh}=geometry;
+ const normalY=(vh-h)/2+4;
+ const pivotY=normalY;
+ const fullScale=Math.min(1,Math.min(vw/2-32,normalY-32,vh-normalY-32)/Math.hypot(w/2,h-22));
+ const scale=1+(fullScale-1)*play;
+ deck.style.left=(vw/2-w/2)+'px';deck.style.top=(pivotY-22)+'px';
+ deck.style.transform=`scale(${scale})`;deck.style.transformOrigin='50% 22px';
+ ring.style.left=(vw/2-32)+'px';ring.style.top=(pivotY-80)+'px';
+ ring.style.transform='none';ringBack.style.left=ring.style.left;ringBack.style.top=ring.style.top;
+ indexBar.style.top=(normalY+h+1)+'px';
+ cards.forEach((card,index)=>{
+  const picked=index===active;
+  const resting=picked?0:(index-(items.length-1)/2)*1.5;
+  const fan=index*360/items.length*dragDirection;
+  // Separate paper angles expand around the shared hole. No free spin.
+  const angle=resting*(1-play)+fan*play;
+  card.style.transform=`rotate(${angle}deg)`;
+  card.style.zIndex=String(play>.01?60-index:picked?100:60-index);
+  card.classList.toggle('extracted',picked&&play===0);
+  card.setAttribute('aria-hidden',String(!picked));
+  tabs[index].setAttribute('aria-selected',String(picked));tabs[index].tabIndex=picked?0:-1;
+ });
+ stage.classList.toggle('playing',dragging||play>0);
+}
+function queueRender(){if(!renderFrame)renderFrame=requestAnimationFrame(()=>{renderFrame=0;render();});}
+function ringAngle(x,y){return Math.atan2(y-((geometry.vh-geometry.h)/2+4),x-geometry.vw/2);}
+ring.addEventListener('pointerdown',e=>{
+ if(e.button!==undefined&&e.button!==0)return;
+ e.preventDefault();clearTimeout(hoverTimer);
+ dragging=true;dragPointer=e.pointerId;dragTravel=0;play=0;previousAngle=null;
+ // Capture keeps the deliberate drag active outside the small ring.
+ ring.setPointerCapture?.(e.pointerId);stage.classList.add('dragging');
+ render();
+});
+ring.addEventListener('pointermove',e=>{
+ if(!dragging||e.pointerId!==dragPointer)return;
+ const {vw,vh}=geometry;
+ if(Math.hypot(e.clientX-vw/2,e.clientY-((vh-geometry.h)/2+4))<22)return;
+ const angle=ringAngle(e.clientX,e.clientY);
+ if(previousAngle!==null){
+  let delta=angle-previousAngle;
+  if(delta>Math.PI)delta-=2*Math.PI;if(delta<-Math.PI)delta+=2*Math.PI;
+  if(Math.abs(delta)<.55){
+   if(Math.abs(dragTravel)<.05&&Math.abs(delta)>.001)dragDirection=Math.sign(delta);
+   dragTravel=Math.max(0,Math.min(2*Math.PI,dragTravel+delta*dragDirection));
+   play=dragTravel/(2*Math.PI);queueRender();
+  }
+ }
+ previousAngle=angle;
+});
+function endDrag(){
+ if(!dragging&&play===0)return;
+ const pointer=dragPointer;dragging=false;dragPointer=null;previousAngle=null;play=0;
+ stage.classList.remove('dragging');
+ if(pointer!==null&&ring.hasPointerCapture?.(pointer))ring.releasePointerCapture(pointer);
+ render();
+}
+ring.addEventListener('pointerup',endDrag);ring.addEventListener('pointercancel',endDrag);ring.addEventListener('lostpointercapture',endDrag);
+ring.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();play=play?0:1;render();}});
+stage.addEventListener('wheel',e=>{
+ if(dragging||e.ctrlKey||e.target?.closest?.('.card-note'))return;
+ e.preventDefault();
+ const now=performance.now();if(now<wheelLockUntil)return;
+ wheelTotal+=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?geometry.vh:1);
+ if(Math.abs(wheelTotal)<35)return;
+ const next=active+Math.sign(wheelTotal);wheelTotal=0;wheelLockUntil=now+420;choose(next);
+},{passive:false});
+window.addEventListener('keydown',e=>{
+ if(e.target===ring)return;
+ let next;
+ if(e.key==='ArrowRight'||e.key==='ArrowDown')next=active+1;
+ else if(e.key==='ArrowLeft'||e.key==='ArrowUp')next=active-1;
+ else if(e.key==='Home')next=0;else if(e.key==='End')next=items.length-1;
+ else if(e.key==='Escape'){endDrag();return;}else return;
+ e.preventDefault();choose(next);tabs[active].focus({preventScroll:true});
+});
+window.addEventListener('blur',()=>{clearTimeout(hoverTimer);endDrag();});
+window.addEventListener('resize',measure);
+measure();
