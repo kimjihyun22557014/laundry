@@ -19,7 +19,7 @@ items.forEach((item,index)=>{
 const ring=document.querySelector('#ring'),ringBack=document.querySelector('#ring-back');
 const counter=node('button','archive-counter');counter.type='button';counter.id='archive-counter';
 counter.setAttribute('aria-haspopup','dialog');counter.setAttribute('aria-controls','archive-menu');
-counter.title='날짜 목록 열기 · 스크롤 또는 방향키로 넘기기';
+counter.title='날짜 목록 열기 · 종이 아래 모서리를 눌러 넘기기';
 stage.append(counter);
 const menu=node('dialog','archive-menu');menu.id='archive-menu';menu.setAttribute('aria-label','날짜별 아카이브');
 const closeButton=node('button','archive-close','×');closeButton.type='button';closeButton.setAttribute('aria-label','날짜 목록 닫기');
@@ -31,14 +31,42 @@ const choices=items.map((item,index)=>{
  grid.append(button);return button;
 });
 let expanded=false,closeTimer=null,geometry=null,wheelSum=0,wheelConsumed=false,wheelTimer=null,touchStart=null;
+let turnTimer=null,turning=false;
+const corners=[];
 cards.forEach((card,index)=>{
+ const face=node('div','paper-face');face.append(...Array.from(card.children));card.append(face);
+ const previous=node('button','page-corner page-corner--previous');previous.type='button';previous.setAttribute('aria-label','이전 카드로 넘기기');
+ const next=node('button','page-corner page-corner--next');next.type='button';next.setAttribute('aria-label','다음 카드로 넘기기');
+ const curlPrevious=node('span','page-curl page-curl--previous'),curlNext=node('span','page-curl page-curl--next');
+ curlPrevious.setAttribute('aria-hidden','true');curlNext.setAttribute('aria-hidden','true');
+ for(const [button,direction,cls] of [[previous,-1,'curl-previous'],[next,1,'curl-next']]){
+  button.addEventListener('pointerenter',()=>{if(!button.disabled&&!turning)card.classList.add(cls);});
+  button.addEventListener('pointerleave',()=>card.classList.remove(cls));
+  button.addEventListener('focus',()=>{if(!button.disabled)card.classList.add(cls);});
+  button.addEventListener('blur',()=>card.classList.remove(cls));
+  button.addEventListener('click',e=>{e.stopPropagation();turnPage(direction);});
+ }
+ card.append(curlPrevious,curlNext,previous,next);corners.push({previous,next});
  card.tabIndex=index===active?0:-1;card.setAttribute('role','group');
  card.setAttribute('aria-label',`${items[index].day}일차 아카이브`);
  card.addEventListener('click',()=>{if(index!==active)choose(index);});
 });
 function choose(index){
  const next=Math.max(0,Math.min(items.length-1,index));if(next===active)return;
+ clearTimeout(turnTimer);turnTimer=null;turning=false;
+ cards.forEach(card=>card.classList.remove('page-leaving-next','page-leaving-previous','curl-next','curl-previous'));
  active=next;render();
+}
+function turnPage(direction){
+ const next=active+direction;
+ if(turning||next<0||next>=items.length)return;
+ if(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches){choose(next);return;}
+ turning=true;cards[active].classList.add(direction>0?'page-leaving-next':'page-leaving-previous');
+ turnTimer=setTimeout(()=>{
+  const focusedCorner=document.activeElement?.classList.contains('page-corner');
+  choose(next);
+  if(focusedCorner)cards[active].focus({preventScroll:true});
+ },280);
 }
 function setExpanded(value){clearTimeout(closeTimer);if(expanded!==value){expanded=value;render();}}
 function closeSoon(){clearTimeout(closeTimer);closeTimer=setTimeout(()=>{if(!menu.open)setExpanded(false);},240);}
@@ -62,6 +90,10 @@ function render(){
   card.style.zIndex=String(selected?100:60-slot);
   card.classList.toggle('extracted',selected);card.tabIndex=selected?0:-1;
   card.setAttribute('aria-hidden',String(!selected));
+  corners[index].previous.disabled=!selected||active===0;
+  corners[index].next.disabled=!selected||active===items.length-1;
+  corners[index].previous.tabIndex=selected&&active>0?0:-1;
+  corners[index].next.tabIndex=selected&&active<items.length-1?0:-1;
   if(selected)choices[index].setAttribute('aria-current','true');else choices[index].removeAttribute('aria-current');
  });
 }
@@ -80,7 +112,7 @@ for(const surface of [deck,ring,counter]){
 }
 // A trackpad gesture advances once, regardless of momentum events.
 stage.addEventListener('wheel',e=>{
- if(menu.open||e.ctrlKey||e.target?.closest?.('.card-note'))return;
+ if(turning||menu.open||e.ctrlKey||e.target?.closest?.('.card-note'))return;
  e.preventDefault();clearTimeout(wheelTimer);
  wheelTimer=setTimeout(()=>{wheelSum=0;wheelConsumed=false;},170);
  if(wheelConsumed)return;
@@ -97,7 +129,7 @@ window.addEventListener('keydown',e=>{
  else if(e.key==='Escape'){setExpanded(false);return;}else return;
  e.preventDefault();choose(next);
 });
-deck.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'){touchStart={x:e.clientX,y:e.clientY};setExpanded(true);deck.setPointerCapture?.(e.pointerId);}});
+deck.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'&&!e.target?.closest?.('.page-corner')){touchStart={x:e.clientX,y:e.clientY};setExpanded(true);deck.setPointerCapture?.(e.pointerId);}});
 deck.addEventListener('pointerup',e=>{
  if(!touchStart)return;
  const dx=e.clientX-touchStart.x,dy=e.clientY-touchStart.y;touchStart=null;
