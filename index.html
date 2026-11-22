@@ -2,6 +2,8 @@
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#000000"><title>입고, 남은 것들</title><style>:root{font-family:Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:#292b28;--cw:clamp(235px,27vw,340px);--ch:clamp(420px,70svh,570px)}*{box-sizing:border-box}body{margin:0;background:#000;overflow:hidden}#stage{position:relative;width:100%;height:100svh;overflow:hidden;touch-action:none;perspective:1400px}#deck{position:absolute;width:var(--cw);height:var(--ch);left:50%;top:50%;transform:translate(-50%,-50%)}.specimen{position:absolute;inset:0;width:100%;height:100%;background:#f5f5ee;padding:46px 25px 17px;border:1px solid #dadbd4;box-shadow:1px 2px 3px #0005,6px 10px 20px #0006;transform-origin:50% 22px;transition:transform .65s cubic-bezier(.22,.8,.2,1),box-shadow .3s;will-change:transform;cursor:grab;outline:0;isolation:isolate}.specimen:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.1;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 150 150' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23000' filter='url(%23n)' d='M0 0h150v150H0z'/%3E%3C/svg%3E");z-index:-1}.specimen.extracted{box-shadow:3px 8px 10px #0007,15px 22px 35px #0008}.specimen:focus-visible{outline:2px solid #aebfb0;outline-offset:4px}.hole{position:absolute;top:14px;left:calc(50% - 8px);width:16px;height:16px;border-radius:50%;background:#000;box-shadow:inset 2px 2px 2px #000,0 1px 1px white}.card-top,.card-foot{display:flex;justify-content:space-between;gap:8px;font:9px/1.5 monospace;letter-spacing:.2px}.card-title{margin:24px 0 18px}.card-title p{font:10px monospace;margin:0 0 5px}h2{font:18px monospace;font-weight:400;margin:0}.crossline{display:flex;justify-content:space-between;color:#899082;font:18px monospace;margin:4px -9px}dl{margin:0 0 21px;font:12px/1.7 monospace}dl div{display:flex;justify-content:space-between;gap:10px}dt{color:#8d9388}dd{margin:0;text-align:right;max-width:72%;word-break:keep-all}.swatch{position:relative;width:100%;height:42%;margin:0;box-shadow:1px 3px 5px #0004}.swatch img{display:block;width:100%;height:100%;object-fit:cover}.staple{position:absolute;top:10px;width:27px;height:3px;background:linear-gradient(#fff,#4c504a);box-shadow:1px 1px 1px #0008;transform:rotate(-4deg)}.staple:first-of-type{left:12px}.staple:last-of-type{right:12px}.card-note{font-size:14px;line-height:1.65;margin:16px 0 12px;white-space:pre-line;overflow:auto;max-height:13%;scrollbar-width:thin;word-break:keep-all}.card-foot{position:absolute;bottom:15px;left:25px;right:25px;border-top:1px solid #c8ccc0;padding-top:9px;font-size:8px;color:#8c9285}#ring{position:absolute;left:calc(50% - 23px);top:calc(50% - var(--ch)/2 - 34px);width:47px;height:74px;border-radius:50%;border:7px solid #a5aaa8;transform:rotate(18deg);box-shadow:inset 2px 1px 2px white,inset -2px -1px 2px #282e2c,2px 2px 3px #000,-2px -1px 1px #fff;z-index:1000;pointer-events:none}#ring:after{content:"";position:absolute;bottom:-8px;left:7px;width:12px;height:8px;background:linear-gradient(#3b4240,#e5e9e7);border-radius:2px}#ring i{position:absolute;inset:-7px;border-radius:50%;border:1px solid #e2e5e3;border-right-color:#5c6360;border-bottom-color:#525955}#stage.turning .specimen{transition:transform .4s cubic-bezier(.22,.8,.2,1),box-shadow .3s}@media(max-width:600px){:root{--cw:min(65vw,290px);--ch:min(69svh,500px)}.specimen{padding:40px 19px 15px}.card-title{margin:17px 0 10px}dl{margin-bottom:16px;font-size:10px}.card-top{font-size:8px}.card-note{font-size:12px}.card-foot{left:19px;right:19px;font-size:7px}h2{font-size:16px}.swatch{height:41%}}@media(prefers-reduced-motion:reduce){.specimen,#stage.turning .specimen{transition:none}}
 
 .specimen,#stage.turning .specimen{transition:box-shadow .3s;will-change:transform}.specimen.extracted{box-shadow:2px 4px 8px #0007,8px 12px 22px #0007}
+
+#stage{perspective:none}.specimen{cursor:pointer;touch-action:none}.specimen .swatch{height:42%}.specimen.extracted{box-shadow:2px 6px 12px #0008,12px 18px 32px #0006}
 </style></head><body><main id="stage" aria-label="커서를 가까이 대거나 원을 그려 링의 표본 카드를 펼쳐보세요. 방향키로도 고를 수 있습니다."><div id="deck" role="group" aria-label="소재 표본 묶음"></div><div id="ring" aria-hidden="true"><i></i></div></main><script>// 글은 아래 각 날짜의 brand, color, material, note에 입력하세요.
 // tags에는 color, scent, easy, worn, warm을 여러 개 넣을 수 있습니다.
 window.ARCHIVE = {
@@ -121,89 +123,138 @@ items.forEach((item,index)=>{
  card.addEventListener('click',()=>{choose(index);});
  deck.append(card);cards.push(card);
 });
-// The order and hinge of every card stay fixed while the bundle opens.
+// Every sheet has its own angle around the same punched hole.
 const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-let openness=0,frame=0,lastTime=0,candidate=-1,candidateSince=0,selectionTimer=null;
-const lifts=items.map(()=>0);
-let rotation=0,rotationTarget=0,rotating=false,arc=0,lastPointerTime=-Infinity,lastRotationTime=-Infinity;
-function fanAngle(index){return items.length===1?0:(index/(items.length-1)-.5)*68;}
+let openness=0,spread=68,spreadTarget=68,frame=0,lastTime=0;
+let reading=true,gesture=false,lastPointer=null,gestureArc=0,gestureDirection=0;
+let selectionTimer=null,restTimer=null,candidate=-1,lastSelection=-Infinity;
+let scene={x:0,y:0,scale:1,width:340,height:570};
+const angles=items.map((_,i)=>-3+i*.65);
+const ring=document.querySelector('#ring');
+function baseAngle(index,amount=spread){return items.length===1?0:(index/(items.length-1)-.5)*amount;}
 function layout(){if(!frame)frame=requestAnimationFrame(animate);}
+function approach(value,target,dt,tau){return reduced?target:value+(target-value)*(1-Math.exp(-dt/tau));}
 function animate(time){
- frame=0;
- const dt=Math.min(40,lastTime?time-lastTime:16);lastTime=time;
- const target=near?1:0;
- openness=reduced?target:openness+(target-openness)*(1-Math.exp(-dt/180));
- if(Math.abs(target-openness)<.001)openness=target;
- rotation=reduced?rotationTarget:rotation+(rotationTarget-rotation)*(1-Math.exp(-dt/120));
- if(Math.abs(rotationTarget-rotation)<.01)rotation=rotationTarget;
- let moving=openness!==target||rotation!==rotationTarget;
+ frame=0;const dt=Math.min(40,lastTime?time-lastTime:16);lastTime=time;
+ openness=approach(openness,near?1:0,dt,180);
+ spread=approach(spread,spreadTarget,dt,210);
+ if(Math.abs(openness-(near?1:0))<.001)openness=near?1:0;
+ if(Math.abs(spread-spreadTarget)<.01)spread=spreadTarget;
+ let moving=openness!==(near?1:0)||spread!==spreadTarget;
  cards.forEach((card,index)=>{
-  const picked=near&&hovered===index;
-  const liftTarget=picked?8:0;
-  lifts[index]=reduced?liftTarget:lifts[index]+(liftTarget-lifts[index])*(1-Math.exp(-dt/95));
-  if(Math.abs(lifts[index]-liftTarget)<.02)lifts[index]=liftTarget;
-  else moving=true;
-  const closed=-3+index*.65;
-  const angle=rotation+closed+(fanAngle(index)-closed)*openness;
-  card.style.transform=`rotate(${angle}deg) translateY(${index*.55+lifts[index]}px)`;
+  const picked=reading&&index===active;
+  const folded=-3+index*.65;
+  // The selected archive always comes to the front and stands upright.
+  const target=picked?0:folded+(baseAngle(index)-folded)*openness;
+  angles[index]=approach(angles[index],target,dt,gesture?145+index*12:160);
+  if(Math.abs(angles[index]-target)<.03)angles[index]=target;else moving=true;
+  card.style.transform=`rotate(${angles[index]}deg)`;
   card.style.zIndex=String(picked?100:60-index);
   card.classList.toggle('extracted',picked);
   card.setAttribute('aria-pressed',String(picked));
  });
+ fitScene();
  if(moving)frame=requestAnimationFrame(animate);else lastTime=0;
 }
-function choose(index){active=index;hovered=index;near=true;layout();}
-function pivot(){const r=deck.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+22,width:r.width,height:r.height};}
-function pointer(x,y){
- const p=pivot(),dx=x-p.x,dy=y-p.y,r=Math.hypot(dx,dy),now=performance.now();
- const proximity=Math.hypot(dx/(p.width*1.3),(y-p.y-p.height*.45)/(p.height*.75));
- // Once open, keep the bundle available through an entire circular gesture.
- if(!(near?r<Math.max(p.height+90,p.width*1.6):proximity<1)){collapse();return;}
- if(!near){near=true;layout();}
- if(r<90){lastAngle=null;cancelSelection();return;}
- const angle=Math.atan2(-dx,dy);
- const degrees=angle*180/Math.PI;
- const local=wrapDegrees(degrees-rotation);
- if(now-lastPointerTime>230){rotating=false;arc=0;lastAngle=null;}
- let delta=lastAngle===null?0:angle-lastAngle;
- if(delta>Math.PI)delta-=2*Math.PI;if(delta<-Math.PI)delta+=2*Math.PI;
- if(Math.abs(delta)>.4){delta=0;arc=0;rotating=false;}
- const outsideFan=Math.abs(local)>46||r<p.height*.38;
- if(!rotating){
-  if(outsideFan&&Math.abs(delta)>.001){
-   if(arc&&Math.sign(arc)!==Math.sign(delta))arc=0;
-   arc+=delta;
-   if(Math.abs(arc)>.3){rotating=true;rotationTarget+=arc*180/Math.PI;arc=0;}
-  }else arc=0;
- }else rotationTarget+=delta*180/Math.PI;
- if(rotating){
-  cancelSelection();lastRotationTime=now;layout();
- }else if(now-lastRotationTime>350&&openness>.85&&Math.abs(local)<=40&&r>p.height*.4){
-  const spacing=items.length>1?68/(items.length-1):68;
-  let index=Math.max(0,Math.min(items.length-1,Math.round((local/68+.5)*(items.length-1))));
-  // Stay with the current card near boundaries, even when the cursor jitters.
-  if(hovered>=0&&Math.abs(local-fanAngle(hovered))<spacing*.5+2.5)index=hovered;
-  if(index!==candidate){
-   cancelSelection();candidate=index;
-   selectionTimer=setTimeout(()=>{if(near&&!rotating&&candidate===index)choose(index);},520);
+function fitScene(){
+ const w=deck.offsetWidth,h=deck.offsetHeight;
+ const vw=stage.clientWidth,vh=stage.clientHeight;
+ let minX=-w/2,maxX=w/2,minY=-22,maxY=h-22;
+ for(const angle of angles){
+  const a=angle*Math.PI/180,c=Math.cos(a),s=Math.sin(a);
+  for(const x of [-w/2,w/2])for(const y of [-22,h-22]){
+   const px=x*c-y*s,py=x*s+y*c;
+   minX=Math.min(minX,px);maxX=Math.max(maxX,px);
+   minY=Math.min(minY,py);maxY=Math.max(maxY,py);
   }
- }else cancelSelection();
- lastAngle=angle;lastPointerTime=now;
+ }
+ const scale=Math.min(1,(vw-44)/(maxX-minX),(vh-68)/(maxY-minY));
+ const x=vw/2-(minX+maxX)*scale/2,y=vh/2-(minY+maxY)*scale/2;
+ scene={x,y,scale,width:w,height:h};
+ deck.style.left=x+'px';deck.style.top=(y-22)+'px';
+ deck.style.transform=`translateX(-50%) scale(${scale})`;
+ deck.style.transformOrigin='50% 22px';
+ ring.style.left=(x-23)+'px';ring.style.top=(y-56)+'px';
+ ring.style.transform=`rotate(18deg) scale(${scale})`;ring.style.transformOrigin='23px 56px';
 }
-function wrapDegrees(angle){return((angle+180)%360+360)%360-180;}
+function choose(index){
+ clearTimeout(selectionTimer);candidate=-1;
+ active=index;hovered=index;reading=true;gesture=false;near=true;
+ gestureArc=0;lastPointer=null;lastSelection=performance.now();layout();
+}
+function localPoint(x,y,angle){
+ const dx=(x-scene.x)/scene.scale,dy=(y-scene.y)/scene.scale;
+ const a=angle*Math.PI/180,c=Math.cos(a),s=Math.sin(a);
+ return{x:dx*c+dy*s,y:-dx*s+dy*c};
+}
+function contains(x,y,angle){
+ const p=localPoint(x,y,angle);
+ return p.x>=-scene.width/2&&p.x<=scene.width/2&&p.y>=-22&&p.y<=scene.height-22;
+}
+function hitCard(x,y){
+ // Test the actual visible paper, not a narrow angle or a hidden card.
+ if(reading&&contains(x,y,angles[active]))return active;
+ for(let i=0;i<cards.length;i++)if(contains(x,y,angles[i]))return i;
+ return -1;
+}
 function cancelSelection(){clearTimeout(selectionTimer);selectionTimer=null;candidate=-1;}
+function scheduleSelection(index){
+ if(index<0||index===active&&reading){cancelSelection();return;}
+ if(candidate===index)return;
+ cancelSelection();candidate=index;
+ selectionTimer=setTimeout(()=>{if(candidate===index&&!gesture)choose(index);},110);
+}
+function finishGesture(){
+ gesture=false;gestureArc=0;lastPointer=null;reading=true;
+ layout();
+}
+function pointer(x,y){
+ const now=performance.now(),dx=x-scene.x,dy=y-scene.y;
+ const radius=Math.hypot(dx,dy),angle=Math.atan2(-dx,dy);
+ const hit=hitCard(x,y);
+ if(!near&&hit<0){lastPointer=null;return;}
+ if(!near){near=true;layout();}
+ const inner=radius<scene.height*scene.scale*.4;
+ let delta=0;
+ if(lastPointer&&now-lastPointer.time<180&&radius>35){
+  delta=angle-lastPointer.angle;
+  if(delta>Math.PI)delta-=2*Math.PI;if(delta<-Math.PI)delta+=2*Math.PI;
+  if(Math.abs(delta)>.45)delta=0;
+ }
+ // Start the optional paper fan in the empty space near the ring.
+ // Normal browsing across exposed card edges never starts a spin.
+ if(!gesture&&(inner||hit<0)&&Math.abs(delta)>.003){
+  if(gestureArc&&Math.sign(gestureArc)!==Math.sign(delta))gestureArc=0;
+  gestureArc+=delta;
+  if(Math.abs(gestureArc)>.26){
+   gesture=true;reading=false;gestureDirection=Math.sign(gestureArc);
+   spreadTarget=Math.min(360-360/items.length,spreadTarget+Math.abs(gestureArc)*180/Math.PI);
+   cancelSelection();layout();
+  }
+ }else if(!gesture)gestureArc=0;
+ if(gesture){
+  spreadTarget=Math.max(68,Math.min(360-360/items.length,spreadTarget+delta*gestureDirection*180/Math.PI));
+  clearTimeout(restTimer);restTimer=setTimeout(finishGesture,260);
+  layout();
+ }else{scheduleSelection(hit);}
+ lastPointer={angle,time:now};
+}
 stage.addEventListener('pointermove',e=>{if(e.pointerType!=='touch'||touching)pointer(e.clientX,e.clientY);});
-stage.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'){touching=true;lastAngle=null;pointer(e.clientX,e.clientY);}});
-stage.addEventListener('pointerup',()=>{touching=false;lastAngle=null;});
-stage.addEventListener('pointercancel',collapse);
-function collapse(){cancelSelection();rotating=false;arc=0;near=false;hovered=-1;lastAngle=null;travel=0;candidate=-1;layout();}
-stage.addEventListener('pointerleave',collapse);window.addEventListener('blur',collapse);
+stage.addEventListener('pointerdown',e=>{
+ if(e.pointerType==='touch')touching=true;
+ const index=hitCard(e.clientX,e.clientY);if(index>=0)choose(index);
+ lastPointer=null;
+});
+stage.addEventListener('pointerup',()=>{touching=false;});
+stage.addEventListener('pointercancel',()=>{touching=false;finishGesture();});
+stage.addEventListener('pointerleave',()=>{cancelSelection();clearTimeout(restTimer);finishGesture();});
+window.addEventListener('blur',()=>{cancelSelection();clearTimeout(restTimer);finishGesture();});
+window.addEventListener('resize',layout);
 window.addEventListener('keydown',e=>{
- if(!['ArrowRight','ArrowLeft','Escape','Enter',' '].includes(e.key))return;
- e.preventDefault();
- if(e.key==='Escape'){document.activeElement?.blur();collapse();}
- else if(e.key==='Enter'||e.key===' '){if(near)collapse();else choose(active);}
- else choose(Math.max(0,Math.min(items.length-1,active+(e.key==='ArrowRight'?1:-1))));
+ if(!['ArrowRight','ArrowLeft','Escape','Enter',' '].includes(e.key))return;e.preventDefault();
+ if(e.key==='Escape'){near=false;spreadTarget=68;reading=true;cancelSelection();clearTimeout(restTimer);finishGesture();}
+ else if(e.key==='Enter'||e.key===' ')choose(active);
+ else choose((active+(e.key==='ArrowRight'?1:-1)+items.length)%items.length);
 });
 layout();
 </script></body></html>
