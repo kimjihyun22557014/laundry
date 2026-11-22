@@ -1,6 +1,6 @@
 'use strict';
 const stage=document.querySelector('#stage'),deck=document.querySelector('#deck');
-const items=window.ARCHIVE.items,cards=[];
+const items=window.ARCHIVE.items.slice().sort((a,b)=>a.day-b.day),cards=[];
 let active=0;
 const pad=n=>String(n).padStart(2,'0');
 function node(tag,cls,text){const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=text;return el;}
@@ -11,122 +11,100 @@ items.forEach((item,index)=>{
  const title=node('div','card-title');title.append(node('p','','MATERIAL / DAILY RECORD'),node('h2','',`DAY ${pad(item.day)}`));card.append(title);
  const cross=node('div','crossline');cross.setAttribute('aria-hidden','true');cross.append(node('span','','+'),node('span','','+'));card.append(cross);
  const dl=node('dl');[['BRAND',item.brand],['COLOR',item.color],['MATERIAL',item.material]].forEach(([k,v])=>{const row=node('div');row.append(node('dt','',k),node('dd','',v||'—'));dl.append(row);});card.append(dl);
- const photo=node('figure','swatch'),img=node('img');img.src=item.image;img.alt=`${item.day}일차 옷 또는 패션 아이템의 표면`;img.draggable=false;photo.append(img,node('i','staple'),node('i','staple'));card.append(photo,node('p','card-note',item.note||''));
+ const photo=node('figure','swatch'),img=node('img');img.src=item.image;img.alt=`${item.day}일차 옷 또는 패션 아이템의 표면`;img.draggable=false;img.decoding="async";img.loading=index<3?"eager":"lazy";photo.append(img,node('i','staple'),node('i','staple'));card.append(photo,node('p','card-note',item.note||''));
  const foot=node('div','card-foot');foot.append(node('span','',`DAILY SAMPLE / ${pad(item.day)}`),node('span','','COLLECTED, NOT FORGOTTEN.'));card.append(foot);
  deck.append(card);cards.push(card);
 });
-// Browsing changes only through the fixed index, wheel or keyboard.
-const ring=document.querySelector('#ring');
-const ringBack=document.querySelector('#ring-back');
-const indexBar=node('nav','sample-index');
-indexBar.setAttribute('role','tablist');indexBar.setAttribute('aria-label','날짜순 아카이브');
-stage.append(indexBar);
-let hoverTimer=null,dragging=false,dragPointer=null,previousAngle=null,dragTravel=0;
-let play=0,dragDirection=1,renderFrame=0,geometry=null,wheelTotal=0,wheelLockUntil=0;
-const tabs=items.map((item,index)=>{
- const tab=node('button','sample-tab',pad(item.day));tab.type='button';tab.id=`sample-tab-${index}`;
- tab.setAttribute('role','tab');tab.setAttribute('aria-label',`${item.day}일차 보기`);
- tab.setAttribute('aria-controls',`sample-${index}`);
- tab.addEventListener('pointerenter',e=>{if(e.pointerType==='touch'||dragging)return;clearTimeout(hoverTimer);hoverTimer=setTimeout(()=>choose(index),140);});
- tab.addEventListener('pointerleave',()=>clearTimeout(hoverTimer));
- tab.addEventListener('click',()=>choose(index));
- tab.addEventListener('focus',()=>{if(!dragging)choose(index);});
- indexBar.append(tab);return tab;
+// Quiet browsing: hover opens the stack; wheel, keys and swipe turn one page.
+const ring=document.querySelector('#ring'),ringBack=document.querySelector('#ring-back');
+const counter=node('button','archive-counter');counter.type='button';counter.id='archive-counter';
+counter.setAttribute('aria-haspopup','dialog');counter.setAttribute('aria-controls','archive-menu');
+counter.title='날짜 목록 열기 · 스크롤 또는 방향키로 넘기기';
+stage.append(counter);
+const menu=node('dialog','archive-menu');menu.id='archive-menu';menu.setAttribute('aria-label','날짜별 아카이브');
+const closeButton=node('button','archive-close','×');closeButton.type='button';closeButton.setAttribute('aria-label','날짜 목록 닫기');
+const grid=node('div','archive-grid');menu.append(closeButton,grid);document.body.append(menu);
+const choices=items.map((item,index)=>{
+ const button=node('button','archive-choice');button.type='button';button.setAttribute('aria-label',`${item.day}일차 보기`);
+ const img=node('img');img.src=item.image;img.alt='';img.loading='lazy';img.decoding='async';
+ button.append(img,node('span','',pad(item.day)));button.addEventListener('click',()=>{choose(index);menu.close();counter.focus({preventScroll:true});});
+ grid.append(button);return button;
 });
+let expanded=false,closeTimer=null,geometry=null,wheelSum=0,wheelConsumed=false,wheelTimer=null,touchStart=null;
 cards.forEach((card,index)=>{
- card.id=`sample-${index}`;card.tabIndex=-1;card.setAttribute('role','tabpanel');
- card.setAttribute('aria-labelledby',`sample-tab-${index}`);
+ card.tabIndex=index===active?0:-1;card.setAttribute('role','group');
+ card.setAttribute('aria-label',`${items[index].day}일차 아카이브`);
+ card.addEventListener('click',()=>{if(index!==active)choose(index);});
 });
-ring.removeAttribute('aria-hidden');ring.setAttribute('role','button');ring.tabIndex=0;
-ring.setAttribute('aria-label','링을 누른 채 원을 그리면 종이가 펼쳐집니다');
-function measure(){
- geometry={w:deck.offsetWidth,h:deck.offsetHeight,vw:stage.clientWidth,vh:stage.clientHeight};
- render();
-}
 function choose(index){
- clearTimeout(hoverTimer);
- if(dragging)endDrag();
- active=Math.max(0,Math.min(items.length-1,index));play=0;
- render();
+ const next=Math.max(0,Math.min(items.length-1,index));if(next===active)return;
+ active=next;render();
 }
+function setExpanded(value){clearTimeout(closeTimer);if(expanded!==value){expanded=value;render();}}
+function closeSoon(){clearTimeout(closeTimer);closeTimer=setTimeout(()=>{if(!menu.open)setExpanded(false);},240);}
+function measure(){geometry={w:deck.offsetWidth,h:deck.offsetHeight,vw:stage.clientWidth,vh:stage.clientHeight};render();}
 function render(){
  if(!geometry)return;
  const {w,h,vw,vh}=geometry;
- const normalY=(vh-h)/2+4;
- const pivotY=normalY;
- const fullScale=Math.min(1,Math.min(vw/2-32,normalY-32,vh-normalY-32)/Math.hypot(w/2,h-22));
- const scale=1+(fullScale-1)*play;
- deck.style.left=(vw/2-w/2)+'px';deck.style.top=(pivotY-22)+'px';
- deck.style.transform=`scale(${scale})`;deck.style.transformOrigin='50% 22px';
- ring.style.left=(vw/2-32)+'px';ring.style.top=(pivotY-80)+'px';
- ring.style.transform='none';ringBack.style.left=ring.style.left;ringBack.style.top=ring.style.top;
- indexBar.style.top=(normalY+h+1)+'px';
+ const holeY=(vh-h)/2+3;
+ deck.style.left=(vw/2-w/2)+'px';deck.style.top=(holeY-22)+'px';
+ ring.style.left=(vw/2-32)+'px';ring.style.top=(holeY-80)+'px';
+ ringBack.style.left=ring.style.left;ringBack.style.top=ring.style.top;
+ counter.style.top=(holeY+h+2)+'px';
+ counter.textContent=`${pad(items[active].day)} / ${pad(items.length)}`;
+ counter.setAttribute('aria-label',`${items[active].day}일차, 전체 ${items.length}개. 날짜 목록 열기`);
+ const count=Math.min(9,items.length),start=Math.min(Math.max(0,active-4),items.length-count);
  cards.forEach((card,index)=>{
-  const picked=index===active;
-  const resting=picked?0:(index-(items.length-1)/2)*1.5;
-  const fan=index*360/items.length*dragDirection;
-  // Separate paper angles expand around the shared hole. No free spin.
-  const angle=resting*(1-play)+fan*play;
-  card.style.transform=`rotate(${angle}deg)`;
-  card.style.zIndex=String(play>.01?60-index:picked?100:60-index);
-  card.classList.toggle('extracted',picked&&play===0);
-  card.setAttribute('aria-hidden',String(!picked));
-  tabs[index].setAttribute('aria-selected',String(picked));tabs[index].tabIndex=picked?0:-1;
+  const shown=index>=start&&index<start+count,selected=index===active;
+  const slot=index-start,offset=count===1?0:slot/(count-1)-.5;
+  card.hidden=!shown;
+  card.style.transform=`rotate(${selected?0:offset*(expanded?25:4)}deg)`;
+  card.style.zIndex=String(selected?100:60-slot);
+  card.classList.toggle('extracted',selected);card.tabIndex=selected?0:-1;
+  card.setAttribute('aria-hidden',String(!selected));
+  if(selected)choices[index].setAttribute('aria-current','true');else choices[index].removeAttribute('aria-current');
  });
- stage.classList.toggle('playing',dragging||play>0);
 }
-function queueRender(){if(!renderFrame)renderFrame=requestAnimationFrame(()=>{renderFrame=0;render();});}
-function ringAngle(x,y){return Math.atan2(y-((geometry.vh-geometry.h)/2+4),x-geometry.vw/2);}
-ring.addEventListener('pointerdown',e=>{
- if(e.button!==undefined&&e.button!==0)return;
- e.preventDefault();clearTimeout(hoverTimer);
- dragging=true;dragPointer=e.pointerId;dragTravel=0;play=0;previousAngle=null;
- // Capture keeps the deliberate drag active outside the small ring.
- ring.setPointerCapture?.(e.pointerId);stage.classList.add('dragging');
- render();
-});
-ring.addEventListener('pointermove',e=>{
- if(!dragging||e.pointerId!==dragPointer)return;
- const {vw,vh}=geometry;
- if(Math.hypot(e.clientX-vw/2,e.clientY-((vh-geometry.h)/2+4))<22)return;
- const angle=ringAngle(e.clientX,e.clientY);
- if(previousAngle!==null){
-  let delta=angle-previousAngle;
-  if(delta>Math.PI)delta-=2*Math.PI;if(delta<-Math.PI)delta+=2*Math.PI;
-  if(Math.abs(delta)<.55){
-   if(Math.abs(dragTravel)<.05&&Math.abs(delta)>.001)dragDirection=Math.sign(delta);
-   dragTravel=Math.max(0,Math.min(2*Math.PI,dragTravel+delta*dragDirection));
-   play=dragTravel/(2*Math.PI);queueRender();
-  }
- }
- previousAngle=angle;
-});
-function endDrag(){
- if(!dragging&&play===0)return;
- const pointer=dragPointer;dragging=false;dragPointer=null;previousAngle=null;play=0;
- stage.classList.remove('dragging');
- if(pointer!==null&&ring.hasPointerCapture?.(pointer))ring.releasePointerCapture(pointer);
- render();
+function openMenu(){
+ clearTimeout(closeTimer);menu.showModal();setExpanded(true);
+ choices[active].focus({preventScroll:true});choices[active].scrollIntoView({block:'nearest'});
 }
-ring.addEventListener('pointerup',endDrag);ring.addEventListener('pointercancel',endDrag);ring.addEventListener('lostpointercapture',endDrag);
-ring.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();play=play?0:1;render();}});
+counter.addEventListener('click',openMenu);closeButton.addEventListener('click',()=>menu.close());
+menu.addEventListener('click',e=>{if(e.target===menu){const r=menu.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)menu.close();}});
+menu.addEventListener('close',()=>{counter.focus({preventScroll:true});closeSoon();});
+for(const surface of [deck,ring,counter]){
+ surface.addEventListener('pointerenter',e=>{if(e.pointerType!=='touch')setExpanded(true);});
+ surface.addEventListener('pointerleave',closeSoon);
+ surface.addEventListener('focusin',()=>setExpanded(true));
+ surface.addEventListener('focusout',closeSoon);
+}
+// A trackpad gesture advances once, regardless of momentum events.
 stage.addEventListener('wheel',e=>{
- if(dragging||e.ctrlKey||e.target?.closest?.('.card-note'))return;
- e.preventDefault();
- const now=performance.now();if(now<wheelLockUntil)return;
- wheelTotal+=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?geometry.vh:1);
- if(Math.abs(wheelTotal)<35)return;
- const next=active+Math.sign(wheelTotal);wheelTotal=0;wheelLockUntil=now+420;choose(next);
+ if(menu.open||e.ctrlKey||e.target?.closest?.('.card-note'))return;
+ e.preventDefault();clearTimeout(wheelTimer);
+ wheelTimer=setTimeout(()=>{wheelSum=0;wheelConsumed=false;},170);
+ if(wheelConsumed)return;
+ wheelSum+=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?geometry.vh:1);
+ if(Math.abs(wheelSum)<30)return;
+ choose(active+Math.sign(wheelSum));wheelConsumed=true;wheelSum=0;
 },{passive:false});
 window.addEventListener('keydown',e=>{
- if(e.target===ring)return;
+ if(menu.open||e.altKey||e.ctrlKey||e.metaKey)return;
  let next;
- if(e.key==='ArrowRight'||e.key==='ArrowDown')next=active+1;
- else if(e.key==='ArrowLeft'||e.key==='ArrowUp')next=active-1;
+ if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key==='PageDown')next=active+1;
+ else if(e.key==='ArrowLeft'||e.key==='ArrowUp'||e.key==='PageUp')next=active-1;
  else if(e.key==='Home')next=0;else if(e.key==='End')next=items.length-1;
- else if(e.key==='Escape'){endDrag();return;}else return;
- e.preventDefault();choose(next);tabs[active].focus({preventScroll:true});
+ else if(e.key==='Escape'){setExpanded(false);return;}else return;
+ e.preventDefault();choose(next);
 });
-window.addEventListener('blur',()=>{clearTimeout(hoverTimer);endDrag();});
+deck.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'){touchStart={x:e.clientX,y:e.clientY};setExpanded(true);deck.setPointerCapture?.(e.pointerId);}});
+deck.addEventListener('pointerup',e=>{
+ if(!touchStart)return;
+ const dx=e.clientX-touchStart.x,dy=e.clientY-touchStart.y;touchStart=null;
+ if(Math.max(Math.abs(dx),Math.abs(dy))>45)choose(active+(Math.abs(dx)>Math.abs(dy)?-Math.sign(dx):-Math.sign(dy)));
+ closeSoon();
+});
+deck.addEventListener('pointercancel',()=>{touchStart=null;closeSoon();});
 window.addEventListener('resize',measure);
+window.addEventListener('blur',()=>{clearTimeout(wheelTimer);wheelConsumed=false;wheelSum=0;setExpanded(false);});
 measure();
