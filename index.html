@@ -4,6 +4,8 @@
 .specimen,#stage.turning .specimen{transition:box-shadow .3s;will-change:transform}.specimen.extracted{box-shadow:2px 4px 8px #0007,8px 12px 22px #0007}
 
 #stage{perspective:none}.specimen{cursor:pointer;touch-action:none}.specimen .swatch{height:42%}.specimen.extracted{box-shadow:2px 6px 12px #0008,12px 18px 32px #0006}
+
+.specimen:before{display:none}.specimen{backface-visibility:hidden;transition:none;will-change:transform}#deck,#ring{will-change:transform}
 </style></head><body><main id="stage" aria-label="커서를 가까이 대거나 원을 그려 링의 표본 카드를 펼쳐보세요. 방향키로도 고를 수 있습니다."><div id="deck" role="group" aria-label="소재 표본 묶음"></div><div id="ring" aria-hidden="true"><i></i></div></main><script>// 글은 아래 각 날짜의 brand, color, material, note에 입력하세요.
 // tags에는 color, scent, easy, worn, warm을 여러 개 넣을 수 있습니다.
 window.ARCHIVE = {
@@ -131,16 +133,24 @@ let selectionTimer=null,restTimer=null,candidate=-1,lastSelection=-Infinity;
 let scene={x:0,y:0,scale:1,width:340,height:570};
 const angles=items.map((_,i)=>-3+i*.65);
 const ring=document.querySelector('#ring');
+let geometry=null,widePose=false,selectionHoldUntil=0;
+const pickedStates=items.map(()=>null);
 function baseAngle(index,amount=spread){return items.length===1?0:(index/(items.length-1)-.5)*amount;}
 function layout(){if(!frame)frame=requestAnimationFrame(animate);}
 function approach(value,target,dt,tau){return reduced?target:value+(target-value)*(1-Math.exp(-dt/tau));}
 function animate(time){
- frame=0;const dt=Math.min(40,lastTime?time-lastTime:16);lastTime=time;
+ frame=0;if(!geometry)measureScene();const dt=Math.min(40,lastTime?time-lastTime:16);lastTime=time;
  openness=approach(openness,near?1:0,dt,180);
  spread=approach(spread,spreadTarget,dt,210);
  if(Math.abs(openness-(near?1:0))<.001)openness=near?1:0;
  if(Math.abs(spread-spreadTarget)<.01)spread=spreadTarget;
- let moving=openness!==(near?1:0)||spread!==spreadTarget;
+ const pose=widePose?geometry.wide:geometry.normal;
+ let poseMoving=false;
+ for(const key of ['x','y','scale']){
+  scene[key]=approach(scene[key],pose[key],dt,190);
+  if(Math.abs(scene[key]-pose[key])<(key==='scale'?.0001:.03))scene[key]=pose[key];else poseMoving=true;
+ }
+ let moving=openness!==(near?1:0)||spread!==spreadTarget||poseMoving;
  cards.forEach((card,index)=>{
   const picked=reading&&index===active;
   const folded=-3+index*.65;
@@ -149,38 +159,44 @@ function animate(time){
   angles[index]=approach(angles[index],target,dt,gesture?145+index*12:160);
   if(Math.abs(angles[index]-target)<.03)angles[index]=target;else moving=true;
   card.style.transform=`rotate(${angles[index]}deg)`;
-  card.style.zIndex=String(picked?100:60-index);
-  card.classList.toggle('extracted',picked);
-  card.setAttribute('aria-pressed',String(picked));
+  if(pickedStates[index]!==picked){
+   card.style.zIndex=String(picked?100:60-index);
+   card.classList.toggle('extracted',picked);
+   card.setAttribute('aria-pressed',String(picked));
+   pickedStates[index]=picked;
+  }
  });
  fitScene();
  if(moving)frame=requestAnimationFrame(animate);else lastTime=0;
 }
-function fitScene(){
- const w=deck.offsetWidth,h=deck.offsetHeight;
- const vw=stage.clientWidth,vh=stage.clientHeight;
+function measureScene(){
+ const w=deck.offsetWidth,h=deck.offsetHeight,vw=stage.clientWidth,vh=stage.clientHeight;
+ // Measure once on resize. The scene never chases animated sheet corners.
  let minX=-w/2,maxX=w/2,minY=-22,maxY=h-22;
- for(const angle of angles){
-  const a=angle*Math.PI/180,c=Math.cos(a),s=Math.sin(a);
+ for(const angle of [-34,0,34]){
+  const a=angle*Math.PI/180,c=Math.cos(a),sn=Math.sin(a);
   for(const x of [-w/2,w/2])for(const y of [-22,h-22]){
-   const px=x*c-y*s,py=x*s+y*c;
-   minX=Math.min(minX,px);maxX=Math.max(maxX,px);
-   minY=Math.min(minY,py);maxY=Math.max(maxY,py);
+   const px=x*c-y*sn,py=x*sn+y*c;
+   minX=Math.min(minX,px);maxX=Math.max(maxX,px);minY=Math.min(minY,py);maxY=Math.max(maxY,py);
   }
  }
- const scale=Math.min(1,(vw-44)/(maxX-minX),(vh-68)/(maxY-minY));
- const x=vw/2-(minX+maxX)*scale/2,y=vh/2-(minY+maxY)*scale/2;
- scene={x,y,scale,width:w,height:h};
- deck.style.left=x+'px';deck.style.top=(y-22)+'px';
- deck.style.transform=`translateX(-50%) scale(${scale})`;
- deck.style.transformOrigin='50% 22px';
- ring.style.left=(x-23)+'px';ring.style.top=(y-56)+'px';
- ring.style.transform=`rotate(18deg) scale(${scale})`;ring.style.transformOrigin='23px 56px';
+ const normalScale=Math.min(1,(vw-44)/(maxX-minX),(vh-68)/(maxY-minY));
+ const radius=Math.hypot(w/2,h-22);
+ geometry={normal:{x:vw/2,y:vh/2-(minY+maxY)*normalScale/2,scale:normalScale},wide:{x:vw/2,y:vh/2,scale:Math.min(1,(Math.min(vw,vh)-68)/(2*radius))}};
+ if(!scene.width||scene.x===0)Object.assign(scene,geometry.normal);
+ scene.width=w;scene.height=h;
+ deck.style.left='0px';deck.style.top='0px';deck.style.transformOrigin='50% 22px';
+ ring.style.left='0px';ring.style.top='0px';ring.style.transformOrigin='23px 56px';
+}
+function fitScene(){
+ const {x,y,scale,width}=scene;
+ deck.style.transform=`translate3d(${x-width/2}px,${y-22}px,0) scale(${scale})`;
+ ring.style.transform=`translate3d(${x-23}px,${y-56}px,0) rotate(18deg) scale(${scale})`;
 }
 function choose(index){
  clearTimeout(selectionTimer);candidate=-1;
  active=index;hovered=index;reading=true;gesture=false;near=true;
- gestureArc=0;lastPointer=null;lastSelection=performance.now();layout();
+ gestureArc=0;lastPointer=null;lastSelection=performance.now();selectionHoldUntil=lastSelection+320;layout();
 }
 function localPoint(x,y,angle){
  const dx=(x-scene.x)/scene.scale,dy=(y-scene.y)/scene.scale;
@@ -193,7 +209,7 @@ function contains(x,y,angle){
 }
 function hitCard(x,y){
  // Test the actual visible paper, not a narrow angle or a hidden card.
- if(reading&&contains(x,y,angles[active]))return active;
+ if(reading&&contains(x,y,0))return active;
  for(let i=0;i<cards.length;i++)if(contains(x,y,angles[i]))return i;
  return -1;
 }
@@ -202,7 +218,7 @@ function scheduleSelection(index){
  if(index<0||index===active&&reading){cancelSelection();return;}
  if(candidate===index)return;
  cancelSelection();candidate=index;
- selectionTimer=setTimeout(()=>{if(candidate===index&&!gesture)choose(index);},110);
+ selectionTimer=setTimeout(()=>{if(candidate===index&&!gesture)choose(index);},Math.max(110,selectionHoldUntil-performance.now()));
 }
 function finishGesture(){
  gesture=false;gestureArc=0;lastPointer=null;reading=true;
@@ -214,7 +230,7 @@ function pointer(x,y){
  const hit=hitCard(x,y);
  if(!near&&hit<0){lastPointer=null;return;}
  if(!near){near=true;layout();}
- const inner=radius<scene.height*scene.scale*.4;
+ const inner=radius<scene.height*scene.scale*.28;
  let delta=0;
  if(lastPointer&&now-lastPointer.time<180&&radius>35){
   delta=angle-lastPointer.angle;
@@ -223,11 +239,11 @@ function pointer(x,y){
  }
  // Start the optional paper fan in the empty space near the ring.
  // Normal browsing across exposed card edges never starts a spin.
- if(!gesture&&(inner||hit<0)&&Math.abs(delta)>.003){
+ if(!gesture&&now>selectionHoldUntil&&(inner||hit<0)&&Math.abs(delta)>.003){
   if(gestureArc&&Math.sign(gestureArc)!==Math.sign(delta))gestureArc=0;
   gestureArc+=delta;
   if(Math.abs(gestureArc)>.26){
-   gesture=true;reading=false;gestureDirection=Math.sign(gestureArc);
+   gesture=true;reading=false;widePose=true;gestureDirection=Math.sign(gestureArc);
    spreadTarget=Math.min(360-360/items.length,spreadTarget+Math.abs(gestureArc)*180/Math.PI);
    cancelSelection();layout();
   }
@@ -249,10 +265,10 @@ stage.addEventListener('pointerup',()=>{touching=false;});
 stage.addEventListener('pointercancel',()=>{touching=false;finishGesture();});
 stage.addEventListener('pointerleave',()=>{cancelSelection();clearTimeout(restTimer);finishGesture();});
 window.addEventListener('blur',()=>{cancelSelection();clearTimeout(restTimer);finishGesture();});
-window.addEventListener('resize',layout);
+window.addEventListener('resize',()=>{measureScene();layout();});
 window.addEventListener('keydown',e=>{
  if(!['ArrowRight','ArrowLeft','Escape','Enter',' '].includes(e.key))return;e.preventDefault();
- if(e.key==='Escape'){near=false;spreadTarget=68;reading=true;cancelSelection();clearTimeout(restTimer);finishGesture();}
+ if(e.key==='Escape'){near=false;widePose=false;spreadTarget=68;reading=true;cancelSelection();clearTimeout(restTimer);finishGesture();}
  else if(e.key==='Enter'||e.key===' ')choose(active);
  else choose((active+(e.key==='ArrowRight'?1:-1)+items.length)%items.length);
 });
