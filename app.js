@@ -119,7 +119,7 @@ function render(){
  ringBack.style.left=ring.style.left;ringBack.style.top=ring.style.top;
  counter.style.top=(holeY+h+2)+'px';
  if(!items.length){counter.hidden=true;return;}
- counter.textContent=`${pad(items[active].day)} / ${pad(items.length)}`;
+ counter.textContent=`${pad(active+1)} / ${pad(items.length)}`;
  counter.setAttribute('aria-label',`${items[active].day}일차, 전체 ${items.length}개. 날짜 목록 열기`);
  const count=Math.min(9,items.length),start=Math.min(Math.max(0,active-4),items.length-count);
  cards.forEach((card,index)=>{

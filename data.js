@@ -483,7 +483,128 @@ window.ARCHIVE.people = [
   {
     "id": "jo-eunjo",
     "name": "조은조",
-    "items": []
+    "items": [
+      {
+        "day": 1,
+        "image": "assets/jo-eunjo/day-01.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 2,
+        "image": "assets/jo-eunjo/day-02.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 3,
+        "image": "assets/jo-eunjo/day-03.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 5,
+        "image": "assets/jo-eunjo/day-05.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 6,
+        "image": "assets/jo-eunjo/day-06.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 7,
+        "image": "assets/jo-eunjo/day-07.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 8,
+        "image": "assets/jo-eunjo/day-08.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 9,
+        "image": "assets/jo-eunjo/day-09.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 10,
+        "image": "assets/jo-eunjo/day-10.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 11,
+        "image": "assets/jo-eunjo/day-11.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 12,
+        "image": "assets/jo-eunjo/day-12.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 13,
+        "image": "assets/jo-eunjo/day-13.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      }
+    ]
   },
   {
     "id": "choi-sua",
