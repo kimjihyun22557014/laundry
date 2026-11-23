@@ -184,6 +184,51 @@ window.ARCHIVE = {
       "material": "",
       "note": "",
       "tags": []
+    },
+    {
+      "day": 21,
+      "image": "assets/day-21.jpg",
+      "brand": "",
+      "color": "",
+      "material": "",
+      "note": "",
+      "tags": []
+    },
+    {
+      "day": 22,
+      "image": "assets/day-22.jpg",
+      "brand": "",
+      "color": "",
+      "material": "",
+      "note": "",
+      "tags": []
+    },
+    {
+      "day": 23,
+      "image": "assets/day-23.jpg",
+      "brand": "",
+      "color": "",
+      "material": "",
+      "note": "",
+      "tags": []
+    },
+    {
+      "day": 24,
+      "image": "assets/day-24.jpg",
+      "brand": "",
+      "color": "",
+      "material": "",
+      "note": "",
+      "tags": []
+    },
+    {
+      "day": 25,
+      "image": "assets/day-25.jpg",
+      "brand": "",
+      "color": "",
+      "material": "",
+      "note": "",
+      "tags": []
     }
   ]
 };
