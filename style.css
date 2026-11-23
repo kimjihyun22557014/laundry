@@ -52,9 +52,9 @@
 .card-content dl{flex-shrink:0;margin:0;font:12px/1.65 Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif}
 .card-content dl div{gap:12px;margin-bottom:5px;align-items:baseline}
 .card-content dt{flex:0 0 auto;font:10px/1.65 monospace}
-.card-content dd{min-width:0;max-width:74%;overflow-wrap:anywhere}
+.card-content dd{flex:1;min-width:0;max-width:none;word-break:keep-all;overflow-wrap:break-word;text-wrap:balance}
 .card-content .swatch{flex:1 0 120px;min-height:120px;max-height:190px;height:auto}
-.card-content .card-note{flex-shrink:0;margin:0;font-size:14px;line-height:1.75;max-height:none;overflow:visible}
+.card-content .card-note{flex-shrink:0;margin:0;font-size:14px;line-height:1.75;max-height:none;overflow:visible;word-break:keep-all;overflow-wrap:break-word;text-wrap:pretty}
 @media(max-width:600px){.card-content dl{font-size:12px}.card-title{margin:14px 0 10px}.card-content .card-note{font-size:14px}}
 
 .page-overflow #deck{touch-action:pan-y}
