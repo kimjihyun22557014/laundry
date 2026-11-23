@@ -41,3 +41,19 @@
 /* Quiet instructions remain separate from the paper and its controls. */
 .archive-guide{position:fixed;top:28px;left:32px;z-index:2;margin:0;color:#999;font-size:13px;font-weight:400;line-height:1.8;word-break:keep-all}
 @media(max-width:600px){.archive-guide{top:16px;left:20px;right:20px;font-size:12px}#stage{margin-top:86px;height:calc(100svh - 86px)}:root{--ch:min(65svh,calc(100svh - 210px),500px)}}
+
+/* Keep the title and footer fixed while long daily records scroll inside the paper. */
+.paper-face{display:flex;flex-direction:column}
+.card-top,.card-title,.crossline,.card-foot{flex-shrink:0}
+.day-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.card-date{color:#858b7e;font:12px/1.5 monospace}
+.card-content{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;touch-action:pan-y;scrollbar-width:thin;scrollbar-color:#b4b8ad transparent;padding:0 4px 4px 0}
+.card-content:focus-visible{outline:1px dashed #a5aa9d;outline-offset:2px}
+.card-content dl{margin-bottom:16px;font:12px/1.65 Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif}
+.card-content dl div{gap:12px;margin-bottom:5px;align-items:baseline}
+.card-content dt{flex:0 0 auto;font:10px/1.65 monospace}
+.card-content dd{min-width:0;max-width:74%;overflow-wrap:anywhere}
+.card-content .swatch{height:clamp(130px,23svh,190px);flex-shrink:0}
+.card-content .card-note{margin:16px 0 0;font-size:14px;line-height:1.75;max-height:none;overflow:visible}
+.paper-face .card-foot{position:static;margin-top:14px;padding-top:9px}
+@media(max-width:600px){.card-content dl{font-size:12px}.card-content .swatch{height:150px}.card-title{margin:14px 0 10px}.card-content .card-note{font-size:14px}.paper-face .card-foot{margin-top:12px}}

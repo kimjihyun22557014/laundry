@@ -8,10 +8,10 @@ items.forEach((item,index)=>{
  const card=node('article','specimen');card.tabIndex=0;card.setAttribute('role','button');card.setAttribute('aria-label',`${item.day}일차 소재 표본 펼치기`);
  card.append(node('div','hole'));
  const top=node('div','card-top');top.append(node('span','','WARDROBE ARCHIVE'),node('span','',pad(item.day)+'.'));card.append(top);
- const title=node('div','card-title');title.append(node('p','','MATERIAL / DAILY RECORD'),node('h2','',`DAY ${pad(item.day)}`));card.append(title);
+ const title=node('div','card-title');title.append(node('p','','MATERIAL / DAILY RECORD'));const heading=node('div','day-heading');heading.append(node('h2','',`DAY ${pad(item.day)}`),node('span','card-date',item.date||''));title.append(heading);card.append(title);
  const cross=node('div','crossline');cross.setAttribute('aria-hidden','true');cross.append(node('span','','+'),node('span','','+'));card.append(cross);
- const dl=node('dl');[['BRAND',item.brand],['COLOR',item.color],['MATERIAL',item.material]].forEach(([k,v])=>{const row=node('div');row.append(node('dt','',k),node('dd','',v||'—'));dl.append(row);});card.append(dl);
- const photo=node('figure','swatch'),img=node('img');img.src=item.image;img.alt=`${item.day}일차 옷 또는 패션 아이템의 표면`;img.draggable=false;img.decoding="async";img.loading=index<3?"eager":"lazy";photo.append(img,node('i','staple'),node('i','staple'));card.append(photo,node('p','card-note',item.note||''));
+ const dl=node('dl');[['BRAND',item.brand],['COLOR',item.color],['MATERIAL',item.material]].forEach(([k,v])=>{const row=node('div');row.append(node('dt','',k),node('dd','',v||'—'));dl.append(row);});const content=node('div','card-content');content.tabIndex=index===active?0:-1;content.setAttribute('role','region');content.setAttribute('aria-label',`${item.day}일차 상세 기록`);content.append(dl);card.append(content);
+ const photo=node('figure','swatch'),img=node('img');img.src=item.image;img.alt=`${item.day}일차 옷 또는 패션 아이템의 표면`;img.draggable=false;img.decoding="async";img.loading=index<3?"eager":"lazy";photo.append(img,node('i','staple'),node('i','staple'));content.append(photo,node('p','card-note',item.note||''));
  const foot=node('div','card-foot');foot.append(node('span','',`DAILY SAMPLE / ${pad(item.day)}`),node('span','','COLLECTED, NOT FORGOTTEN.'));card.append(foot);
  deck.append(card);cards.push(card);
 });
@@ -27,7 +27,7 @@ const grid=node('div','archive-grid');menu.append(closeButton,grid);document.bod
 const choices=items.map((item,index)=>{
  const button=node('button','archive-choice');button.type='button';button.setAttribute('aria-label',`${item.day}일차 보기`);
  const img=node('img');img.src=item.image;img.alt='';img.loading='lazy';img.decoding='async';
- button.append(img,node('span','',pad(item.day)));button.addEventListener('click',()=>{choose(index);menu.close();counter.focus({preventScroll:true});});
+ button.append(img,node('span','',`${pad(item.day)} · ${item.date||''}`));button.addEventListener('click',()=>{choose(index);menu.close();counter.focus({preventScroll:true});});
  grid.append(button);return button;
 });
 let expanded=false,closeTimer=null,geometry=null,wheelSum=0,wheelConsumed=false,wheelTimer=null,touchStart=null;
@@ -90,6 +90,7 @@ function render(){
   card.style.zIndex=String(selected?100:60-slot);
   card.classList.toggle('extracted',selected);card.tabIndex=selected?0:-1;
   card.setAttribute('aria-hidden',String(!selected));
+  card.querySelector('.card-content').tabIndex=selected?0:-1;
   corners[index].previous.disabled=!selected||active===0;
   corners[index].next.disabled=!selected||active===items.length-1;
   corners[index].previous.tabIndex=selected&&active>0?0:-1;
@@ -112,7 +113,7 @@ for(const surface of [deck,ring,counter]){
 }
 // A trackpad gesture advances once, regardless of momentum events.
 stage.addEventListener('wheel',e=>{
- if(turning||menu.open||e.ctrlKey||e.target?.closest?.('.card-note'))return;
+ if(turning||menu.open||e.ctrlKey||e.target?.closest?.('.card-content'))return;
  e.preventDefault();clearTimeout(wheelTimer);
  wheelTimer=setTimeout(()=>{wheelSum=0;wheelConsumed=false;},170);
  if(wheelConsumed)return;
@@ -121,7 +122,7 @@ stage.addEventListener('wheel',e=>{
  choose(active+Math.sign(wheelSum));wheelConsumed=true;wheelSum=0;
 },{passive:false});
 window.addEventListener('keydown',e=>{
- if(menu.open||e.altKey||e.ctrlKey||e.metaKey)return;
+ if(menu.open||e.altKey||e.ctrlKey||e.metaKey||e.target?.closest?.('.card-content'))return;
  let next;
  if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key==='PageDown')next=active+1;
  else if(e.key==='ArrowLeft'||e.key==='ArrowUp'||e.key==='PageUp')next=active-1;
@@ -129,7 +130,7 @@ window.addEventListener('keydown',e=>{
  else if(e.key==='Escape'){setExpanded(false);return;}else return;
  e.preventDefault();choose(next);
 });
-deck.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'&&!e.target?.closest?.('.page-corner')){touchStart={x:e.clientX,y:e.clientY};setExpanded(true);deck.setPointerCapture?.(e.pointerId);}});
+deck.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'&&!e.target?.closest?.('.page-corner, .card-content')){touchStart={x:e.clientX,y:e.clientY};setExpanded(true);deck.setPointerCapture?.(e.pointerId);}});
 deck.addEventListener('pointerup',e=>{
  if(!touchStart)return;
  const dx=e.clientX-touchStart.x,dy=e.clientY-touchStart.y;touchStart=null;
