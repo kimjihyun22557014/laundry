@@ -7,12 +7,10 @@ function node(tag,cls,text){const el=document.createElement(tag);if(cls)el.class
 items.forEach((item,index)=>{
  const card=node('article','specimen');card.tabIndex=0;card.setAttribute('role','button');card.setAttribute('aria-label',`${item.day}일차 소재 표본 펼치기`);
  card.append(node('div','hole'));
- const top=node('div','card-top');top.append(node('span','','WARDROBE ARCHIVE'),node('span','',pad(item.day)+'.'));card.append(top);
- const title=node('div','card-title');title.append(node('p','','MATERIAL / DAILY RECORD'));const heading=node('div','day-heading');heading.append(node('h2','',`DAY ${pad(item.day)}`),node('span','card-date',item.date||''));title.append(heading);card.append(title);
- const cross=node('div','crossline');cross.setAttribute('aria-hidden','true');cross.append(node('span','','+'),node('span','','+'));card.append(cross);
- const dl=node('dl');[['BRAND',item.brand],['COLOR',item.color],['MATERIAL',item.material]].forEach(([k,v])=>{const row=node('div');row.append(node('dt','',k),node('dd','',v||'—'));dl.append(row);});const content=node('div','card-content');content.tabIndex=index===active?0:-1;content.setAttribute('role','region');content.setAttribute('aria-label',`${item.day}일차 상세 기록`);content.append(dl);card.append(content);
+ const top=node('div','card-top');top.append(node('span','','Stories Left with Us'));card.append(top);
+ const title=node('div','card-title');const heading=node('div','day-heading');heading.append(node('h2','',`DAY ${pad(item.day)}`),node('span','card-date',item.date||''));title.append(heading);card.append(title);
+ const dl=node('dl');[['BRAND',item.brand],['COLOR',item.color],['MATERIAL',item.material]].forEach(([k,v])=>{const row=node('div');row.append(node('dt','',k),node('dd','',v||'—'));dl.append(row);});const content=node('div','card-content');content.setAttribute('role','region');content.setAttribute('aria-label',`${item.day}일차 상세 기록`);content.append(dl);card.append(content);
  const photo=node('figure','swatch'),img=node('img');img.src=item.image;img.alt=`${item.day}일차 옷 또는 패션 아이템의 표면`;img.draggable=false;img.decoding="async";img.loading=index<3?"eager":"lazy";photo.append(img,node('i','staple'),node('i','staple'));content.append(photo,node('p','card-note',item.note||''));
- const foot=node('div','card-foot');foot.append(node('span','',`DAILY SAMPLE / ${pad(item.day)}`),node('span','','COLLECTED, NOT FORGOTTEN.'));card.append(foot);
  deck.append(card);cards.push(card);
 });
 // Quiet browsing: hover opens the stack; wheel, keys and swipe turn one page.
@@ -70,7 +68,27 @@ function turnPage(direction){
 }
 function setExpanded(value){clearTimeout(closeTimer);if(expanded!==value){expanded=value;render();}}
 function closeSoon(){clearTimeout(closeTimer);closeTimer=setTimeout(()=>{if(!menu.open)setExpanded(false);},240);}
-function measure(){geometry={w:deck.offsetWidth,h:deck.offsetHeight,vw:stage.clientWidth,vh:stage.clientHeight};render();}
+function measure(){
+ // Reserve enough space for every record at the existing text sizes.
+ deck.style.height='';stage.style.minHeight='';
+ let required=0;
+ cards.forEach(card=>{
+  card.hidden=false;
+  const face=card.querySelector('.paper-face'),title=card.querySelector('.card-title');
+  const content=card.querySelector('.card-content'),dl=content.querySelector('dl'),note=content.querySelector('.card-note');
+  const faceStyle=getComputedStyle(face),titleStyle=getComputedStyle(title);
+  const height=parseFloat(faceStyle.paddingTop)+parseFloat(faceStyle.paddingBottom)+
+   card.querySelector('.card-top').offsetHeight+title.offsetHeight+
+   parseFloat(titleStyle.marginTop)+parseFloat(titleStyle.marginBottom)+
+   dl.offsetHeight+note.offsetHeight+120+28+2;
+  required=Math.max(required,Math.ceil(height));
+ });
+ deck.style.height=Math.max(deck.offsetHeight,required)+'px';
+ // Very short screens can show the complete sheet through ordinary page scrolling.
+ document.body.classList.toggle('page-overflow',deck.offsetHeight+150>stage.clientHeight);
+ stage.style.minHeight=(deck.offsetHeight+150)+'px';
+ geometry={w:deck.offsetWidth,h:deck.offsetHeight,vw:stage.clientWidth,vh:stage.clientHeight};render();
+}
 function render(){
  if(!geometry)return;
  const {w,h,vw,vh}=geometry;
@@ -90,7 +108,6 @@ function render(){
   card.style.zIndex=String(selected?100:60-slot);
   card.classList.toggle('extracted',selected);card.tabIndex=selected?0:-1;
   card.setAttribute('aria-hidden',String(!selected));
-  card.querySelector('.card-content').tabIndex=selected?0:-1;
   corners[index].previous.disabled=!selected||active===0;
   corners[index].next.disabled=!selected||active===items.length-1;
   corners[index].previous.tabIndex=selected&&active>0?0:-1;
@@ -113,7 +130,7 @@ for(const surface of [deck,ring,counter]){
 }
 // A trackpad gesture advances once, regardless of momentum events.
 stage.addEventListener('wheel',e=>{
- if(turning||menu.open||e.ctrlKey||e.target?.closest?.('.card-content'))return;
+ if(turning||menu.open||e.ctrlKey||document.body.classList.contains('page-overflow'))return;
  e.preventDefault();clearTimeout(wheelTimer);
  wheelTimer=setTimeout(()=>{wheelSum=0;wheelConsumed=false;},170);
  if(wheelConsumed)return;
@@ -130,7 +147,7 @@ window.addEventListener('keydown',e=>{
  else if(e.key==='Escape'){setExpanded(false);return;}else return;
  e.preventDefault();choose(next);
 });
-deck.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'&&!e.target?.closest?.('.page-corner, .card-content')){touchStart={x:e.clientX,y:e.clientY};setExpanded(true);deck.setPointerCapture?.(e.pointerId);}});
+deck.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'&&!document.body.classList.contains('page-overflow')&&!e.target?.closest?.('.page-corner')){touchStart={x:e.clientX,y:e.clientY};setExpanded(true);deck.setPointerCapture?.(e.pointerId);}});
 deck.addEventListener('pointerup',e=>{
  if(!touchStart)return;
  const dx=e.clientX-touchStart.x,dy=e.clientY-touchStart.y;touchStart=null;
@@ -141,3 +158,4 @@ deck.addEventListener('pointercancel',()=>{touchStart=null;closeSoon();});
 window.addEventListener('resize',measure);
 window.addEventListener('blur',()=>{clearTimeout(wheelTimer);wheelConsumed=false;wheelSum=0;setExpanded(false);});
 measure();
+document.fonts?.ready.then(measure);

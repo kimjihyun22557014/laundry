@@ -1,7 +1,7 @@
 // 글은 아래 각 날짜의 brand, color, material, note에 입력하세요.
 // tags에는 color, scent, easy, worn, warm을 여러 개 넣을 수 있습니다.
 window.ARCHIVE = {
-  "title": "입고, 남은 것들",
+  "title": "Stories Left with Us",
   "subtitle": "옷의 표면에서 모은 일상의 조각들.",
   "owner": "KIM JIHYUN",
   "items": [
