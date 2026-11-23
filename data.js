@@ -609,12 +609,354 @@ window.ARCHIVE.people = [
   {
     "id": "choi-sua",
     "name": "최수아",
-    "items": []
+    "items": [
+      {
+        "day": 1,
+        "image": "assets/choi-sua/day-01.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 2,
+        "image": "assets/choi-sua/day-02.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 3,
+        "image": "assets/choi-sua/day-03.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 4,
+        "image": "assets/choi-sua/day-04.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 5,
+        "image": "assets/choi-sua/day-05.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 6,
+        "image": "assets/choi-sua/day-06.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 7,
+        "image": "assets/choi-sua/day-07.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 8,
+        "image": "assets/choi-sua/day-08.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 9,
+        "image": "assets/choi-sua/day-09.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 10,
+        "image": "assets/choi-sua/day-10.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 11,
+        "image": "assets/choi-sua/day-11.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 12,
+        "image": "assets/choi-sua/day-12.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 13,
+        "image": "assets/choi-sua/day-13.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      }
+    ]
   },
   {
     "id": "choi-woojin",
     "name": "최우진",
-    "items": []
+    "items": [
+      {
+        "day": 1,
+        "image": "assets/choi-woojin/day-01.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 2,
+        "image": "assets/choi-woojin/day-02.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 3,
+        "image": "assets/choi-woojin/day-03.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 4,
+        "image": "assets/choi-woojin/day-04.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 5,
+        "image": "assets/choi-woojin/day-05.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 6,
+        "image": "assets/choi-woojin/day-06.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 7,
+        "image": "assets/choi-woojin/day-07.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 8,
+        "image": "assets/choi-woojin/day-08.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 9,
+        "image": "assets/choi-woojin/day-09.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 10,
+        "image": "assets/choi-woojin/day-10.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 11,
+        "image": "assets/choi-woojin/day-11.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 12,
+        "image": "assets/choi-woojin/day-12.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 13,
+        "image": "assets/choi-woojin/day-13.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 14,
+        "image": "assets/choi-woojin/day-14.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 15,
+        "image": "assets/choi-woojin/day-15.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 16,
+        "image": "assets/choi-woojin/day-16.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 17,
+        "image": "assets/choi-woojin/day-17.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 18,
+        "image": "assets/choi-woojin/day-18.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 19,
+        "image": "assets/choi-woojin/day-19.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 20,
+        "image": "assets/choi-woojin/day-20.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 21,
+        "image": "assets/choi-woojin/day-21.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      }
+    ]
   }
 ];
 window.ARCHIVE.people[0].items = window.ARCHIVE.items;
