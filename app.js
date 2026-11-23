@@ -1,9 +1,29 @@
 'use strict';
 const stage=document.querySelector('#stage'),deck=document.querySelector('#deck');
-const items=window.ARCHIVE.items.slice().sort((a,b)=>a.day-b.day),cards=[];
+const people=window.ARCHIVE.people||[{id:'kim-jihyun',name:'김지현',items:window.ARCHIVE.items}];
+const requestedPerson=new URLSearchParams(window.location.search).get('person');
+const person=people.find(entry=>entry.id===requestedPerson)||people[0];
+const items=person.items.slice().sort((a,b)=>a.day-b.day),cards=[];
+document.title=person.name+' | '+window.ARCHIVE.title;
+deck.setAttribute('aria-label',person.name+'의 세탁물 기록');
 let active=0;
 const pad=n=>String(n).padStart(2,'0');
 function node(tag,cls,text){const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=text;return el;}
+const peopleNav=node('nav','people-nav');peopleNav.setAttribute('aria-label','사람별 세탁물 기록');
+people.forEach(entry=>{
+ const link=node('a','person-link',entry.name);link.href='?person='+entry.id;
+ if(entry.id===person.id)link.setAttribute('aria-current','page');
+ peopleNav.append(link);
+});
+document.body.append(peopleNav);
+if(!items.length){
+ const empty=node('article','specimen empty-card'),face=node('div','paper-face');
+ const top=node('div','card-top','Stories Left with Us'),title=node('h2','',person.name);
+ face.append(node('div','hole'),top,title,node('p','empty-note','아직 맡겨진 세탁물이 없어요.'));
+ empty.append(face);deck.append(empty);
+ document.body.classList.add('is-empty');
+}
+
 items.forEach((item,index)=>{
  const card=node('article','specimen');card.tabIndex=0;card.setAttribute('role','button');card.setAttribute('aria-label',`${item.day}일차 소재 표본 펼치기`);
  card.append(node('div','hole'));
@@ -25,7 +45,7 @@ const grid=node('div','archive-grid');menu.append(closeButton,grid);document.bod
 const choices=items.map((item,index)=>{
  const button=node('button','archive-choice');button.type='button';button.setAttribute('aria-label',`${item.day}일차 보기`);
  const img=node('img');img.src=item.image;img.alt='';img.loading='lazy';img.decoding='async';
- button.append(img,node('span','',`${pad(item.day)} · ${item.date||''}`));button.addEventListener('click',()=>{choose(index);menu.close();counter.focus({preventScroll:true});});
+ button.append(img,node('span','',item.date?`${pad(item.day)} · ${item.date}`:pad(item.day)));button.addEventListener('click',()=>{choose(index);menu.close();counter.focus({preventScroll:true});});
  grid.append(button);return button;
 });
 let expanded=false,closeTimer=null,geometry=null,wheelSum=0,wheelConsumed=false,wheelTimer=null,touchStart=null;
@@ -50,6 +70,7 @@ cards.forEach((card,index)=>{
  card.addEventListener('click',()=>{if(index!==active)choose(index);});
 });
 function choose(index){
+ if(!items.length)return;
  const next=Math.max(0,Math.min(items.length-1,index));if(next===active)return;
  clearTimeout(turnTimer);turnTimer=null;turning=false;
  cards.forEach(card=>card.classList.remove('page-leaving-next','page-leaving-previous','curl-next','curl-previous'));
@@ -97,6 +118,7 @@ function render(){
  ring.style.left=(vw/2-32)+'px';ring.style.top=(holeY-80)+'px';
  ringBack.style.left=ring.style.left;ringBack.style.top=ring.style.top;
  counter.style.top=(holeY+h+2)+'px';
+ if(!items.length){counter.hidden=true;return;}
  counter.textContent=`${pad(items[active].day)} / ${pad(items.length)}`;
  counter.setAttribute('aria-label',`${items[active].day}일차, 전체 ${items.length}개. 날짜 목록 열기`);
  const count=Math.min(9,items.length),start=Math.min(Math.max(0,active-4),items.length-count);
@@ -116,6 +138,7 @@ function render(){
  });
 }
 function openMenu(){
+ if(!items.length)return;
  clearTimeout(closeTimer);menu.showModal();setExpanded(true);
  choices[active].focus({preventScroll:true});choices[active].scrollIntoView({block:'nearest'});
 }
@@ -130,7 +153,7 @@ for(const surface of [deck,ring,counter]){
 }
 // A trackpad gesture advances once, regardless of momentum events.
 stage.addEventListener('wheel',e=>{
- if(turning||menu.open||e.ctrlKey||document.body.classList.contains('page-overflow'))return;
+ if(!items.length||turning||menu.open||e.ctrlKey||document.body.classList.contains('page-overflow'))return;
  e.preventDefault();clearTimeout(wheelTimer);
  wheelTimer=setTimeout(()=>{wheelSum=0;wheelConsumed=false;},170);
  if(wheelConsumed)return;
@@ -139,7 +162,7 @@ stage.addEventListener('wheel',e=>{
  choose(active+Math.sign(wheelSum));wheelConsumed=true;wheelSum=0;
 },{passive:false});
 window.addEventListener('keydown',e=>{
- if(menu.open||e.altKey||e.ctrlKey||e.metaKey||e.target?.closest?.('.card-content'))return;
+ if(!items.length||menu.open||e.altKey||e.ctrlKey||e.metaKey||e.target?.closest?.('.card-content'))return;
  let next;
  if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key==='PageDown')next=active+1;
  else if(e.key==='ArrowLeft'||e.key==='ArrowUp'||e.key==='PageUp')next=active-1;

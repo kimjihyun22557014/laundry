@@ -58,3 +58,16 @@
 @media(max-width:600px){.card-content dl{font-size:12px}.card-title{margin:14px 0 10px}.card-content .card-note{font-size:14px}}
 
 .page-overflow #deck{touch-action:pan-y}
+
+/* Each name is a direct, shareable page for one person's laundry. */
+.people-nav{position:fixed;right:32px;top:50%;transform:translateY(-50%);z-index:1200;display:flex;flex-direction:column;align-items:flex-end;gap:12px}
+.person-link{display:block;padding:8px 2px;color:#888;font-size:14px;line-height:1.5;text-decoration:none;text-underline-offset:6px;transition:color .2s}
+.person-link:hover,.person-link:focus-visible{color:#fff}
+.person-link:focus-visible{outline:1px solid #777;outline-offset:4px}
+.person-link[aria-current=page]{color:#f5f5ee;text-decoration:underline}
+.empty-card .paper-face{justify-content:flex-start}
+.empty-card h2{margin-top:40px}
+.empty-note{margin-top:24px;font-size:14px;line-height:1.75;color:#858b7e;word-break:keep-all}
+.is-empty #ring,.is-empty #ring-back{display:none}
+@media(max-width:600px){.people-nav{position:absolute;top:76px;right:20px;left:20px;transform:none;flex-direction:row;justify-content:flex-end;gap:12px}.person-link{font-size:13px;padding:8px 0}#stage{margin-top:140px;height:calc(100svh - 140px)}:root{--ch:min(76svh,calc(100svh - 264px),660px)}}
+@media(prefers-reduced-motion:reduce){.person-link{transition:none}}

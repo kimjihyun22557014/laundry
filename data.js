@@ -257,3 +257,243 @@ window.ARCHIVE = {
     }
   ]
 };
+
+// 사람별 기록: 김지현의 기존 기록은 그대로 재사용합니다.
+window.ARCHIVE.people = [
+  {
+    "id": "kim-jihyun",
+    "name": "김지현"
+  },
+  {
+    "id": "park-minuk",
+    "name": "박민욱",
+    "items": [
+      {
+        "day": 1,
+        "image": "assets/park-minuk/day-01.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 2,
+        "image": "assets/park-minuk/day-02.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 3,
+        "image": "assets/park-minuk/day-03.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 4,
+        "image": "assets/park-minuk/day-04.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 5,
+        "image": "assets/park-minuk/day-05.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 6,
+        "image": "assets/park-minuk/day-06.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 7,
+        "image": "assets/park-minuk/day-07.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 8,
+        "image": "assets/park-minuk/day-08.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 9,
+        "image": "assets/park-minuk/day-09.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 10,
+        "image": "assets/park-minuk/day-10.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 11,
+        "image": "assets/park-minuk/day-11.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 12,
+        "image": "assets/park-minuk/day-12.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 13,
+        "image": "assets/park-minuk/day-13.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 14,
+        "image": "assets/park-minuk/day-14.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 15,
+        "image": "assets/park-minuk/day-15.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 16,
+        "image": "assets/park-minuk/day-16.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 17,
+        "image": "assets/park-minuk/day-17.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 18,
+        "image": "assets/park-minuk/day-18.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 19,
+        "image": "assets/park-minuk/day-19.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 20,
+        "image": "assets/park-minuk/day-20.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      },
+      {
+        "day": 21,
+        "image": "assets/park-minuk/day-21.jpg",
+        "date": "",
+        "brand": "",
+        "color": "",
+        "material": "",
+        "note": "",
+        "tags": []
+      }
+    ]
+  },
+  {
+    "id": "jo-eunjo",
+    "name": "조은조",
+    "items": []
+  },
+  {
+    "id": "choi-sua",
+    "name": "최수아",
+    "items": []
+  },
+  {
+    "id": "choi-woojin",
+    "name": "최우진",
+    "items": []
+  }
+];
+window.ARCHIVE.people[0].items = window.ARCHIVE.items;
