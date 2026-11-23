@@ -29,7 +29,7 @@ items.forEach((item,index)=>{
  card.append(node('div','hole'));
  const top=node('div','card-top');top.append(node('span','','Stories Left with Us'));card.append(top);
  const title=node('div','card-title');const heading=node('div','day-heading');heading.append(node('h2','',`DAY ${pad(item.day)}`),node('span','card-date',item.date||''));title.append(heading);card.append(title);
- const dl=node('dl');[['BRAND',item.brand],['COLOR',item.color],['MATERIAL',item.material]].forEach(([k,v])=>{const row=node('div');row.append(node('dt','',k),node('dd','',v||'—'));dl.append(row);});const content=node('div','card-content');content.setAttribute('role','region');content.setAttribute('aria-label',`${item.day}일차 상세 기록`);content.append(dl);card.append(content);
+ const dl=node('dl');[['BRAND',item.brand],...(item.product?[['PRODUCT',item.product]]:[]),['COLOR',item.color],['MATERIAL',item.material]].forEach(([k,v])=>{const row=node('div');row.append(node('dt','',k),node('dd','',v||'—'));dl.append(row);});const content=node('div','card-content');content.setAttribute('role','region');content.setAttribute('aria-label',`${item.day}일차 상세 기록`);content.append(dl);card.append(content);
  const photo=node('figure','swatch'),img=node('img');img.src=item.image;img.alt=`${item.day}일차 옷 또는 패션 아이템의 표면`;img.draggable=false;img.decoding="async";img.loading=index<3?"eager":"lazy";photo.append(img,node('i','staple'),node('i','staple'));content.append(photo,node('p','card-note',item.note||''));
  deck.append(card);cards.push(card);
 });
